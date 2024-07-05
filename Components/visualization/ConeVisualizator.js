@@ -2,22 +2,43 @@
 
 import { useState, useRef, useEffect } from "react";
 
+import HoverMenu from "./HoverMenu";
+
 import "@kitware/vtk.js/Rendering/Profiles/Geometry";
+import "@kitware/vtk.js/Rendering/Profiles/Volume";
 
-import vtkActor from "@kitware/vtk.js/Rendering/Core/Actor";
-import vtkMapper from "@kitware/vtk.js/Rendering/Core/Mapper";
-import vtkConeSource from "@kitware/vtk.js/Filters/Sources/ConeSource";
-import vtkOutlineFilter from "@kitware/vtk.js/Filters/General/OutlineFilter";
+import vtkVolume from "@kitware/vtk.js/Rendering/Core/Volume";
+import vtkVolumeMapper from "@kitware/vtk.js/Rendering/Core/VolumeMapper";
 import vtkGenericRenderWindow from "@kitware/vtk.js/Rendering/Misc/GenericRenderWindow";
-import ImageConstants from "@kitware/vtk.js/Rendering/Core/ImageMapper/Constants";
 
-const { SlicingMode } = ImageConstants;
+import vtkPiecewiseFunction from "@kitware/vtk.js/Common/DataModel/PiecewiseFunction";
+import vtkColorTransferFunction from "@kitware/vtk.js/Rendering/Core/ColorTransferFunction";
+import vtkColorMaps from "@kitware/vtk.js/Rendering/Core/ColorTransferFunction/ColorMaps";
 
-export default function ConeVisualizator() {
+
+export default function ConeVisualizator({ imageReader, load }) {
   const vtkContainerRef = useRef(null);
   const context = useRef(null);
-  const [coneResolution, setConeResolution] = useState(6);
-  const [representation, setRepresentation] = useState(2);
+
+  //setting filters
+
+  const colorMapTable = vtkColorTransferFunction.newInstance();
+  colorMapTable.applyColorMap(vtkColorMaps.getPresetByName("Grayscale"));
+  colorMapTable.setMappingRange(0, 256);
+  colorMapTable.updateRange();
+
+  const subdomains = vtkPiecewiseFunction.newInstance();
+
+  const start = 32;
+  const end = 256;
+  const steps = 20;
+  const startStep = 0;
+  for (let i = startStep; i <= steps; i++) {
+    subdomains.addPoint(
+      start + (i * (end - start)) / steps,
+      (i - startStep) / (steps - startStep)
+    );
+  }
 
   useEffect(() => {
     if (!context.current) {
@@ -27,25 +48,21 @@ export default function ConeVisualizator() {
       fullScreenRenderer.resize();
 
       //sources and wrappers
-      const coneSource = vtkConeSource.newInstance({ height: 1.0 });
-
-      const filter = vtkOutlineFilter.newInstance();
-
-      filter.setInputConnection(coneSource.getOutputPort());
+      const imageSource = imageReader.getOutputData(0);
 
       //mappers
-      let mapper = vtkMapper.newInstance();
-      const mapperOutline = vtkMapper.newInstance();
-      mapper.setInputConnection(coneSource.getOutputPort());
-      mapperOutline.setInputConnection(filter.getOutputPort());
+      const mapper = vtkVolumeMapper.newInstance();
+      mapper.setSampleDistance(0.7);
 
       //actors
-      let actor = vtkActor.newInstance();
-      const actorOutline = vtkActor.newInstance();
+      const actor = vtkVolume.newInstance();
+
+      actor.getProperty().setScalarOpacity(0, subdomains);
+      actor.getProperty().setRGBTransferFunction(0, colorMapTable);
 
       //actors to mappers
       actor.setMapper(mapper);
-      actorOutline.setMapper(mapperOutline);
+      mapper.setInputData(imageSource);
 
       //renderer
       const renderer = fullScreenRenderer.getRenderer();
@@ -54,14 +71,13 @@ export default function ConeVisualizator() {
       renderer.getActiveCamera().setParallelProjection(true);
 
       renderer.addActor(actor);
-      renderer.addActor(actorOutline);
+      renderer.resetCamera();
       renderWindow.render();
 
       context.current = {
         fullScreenRenderer,
         renderWindow,
         renderer,
-        coneSource,
         actor,
         mapper,
       };
@@ -71,83 +87,19 @@ export default function ConeVisualizator() {
       if (context.current) {
         const { fullScreenRenderer, coneSource, actor, mapper } =
           context.current;
-        actor.delete();
-        mapper.delete();
-        coneSource.delete();
-        fullScreenRenderer.delete();
+        // actor.delete();
+        // mapper.delete();
+        // coneSource.delete();
+        // fullScreenRenderer.delete();
         context.current = null;
       }
     };
   }, [vtkContainerRef]);
 
-  useEffect(() => {
-    if (context.current) {
-      const { coneSource, renderWindow } = context.current;
-      coneSource.setResolution(coneResolution);
-      renderWindow.render();
-    }
-  }, [coneResolution]);
-
-  useEffect(() => {
-    if (context.current) {
-      const { actor, renderWindow } = context.current;
-      renderWindow.render();
-    }
-  }, [representation]);
-
   return (
-    /*!context.current ?*/ //   <form>
-    //     <input
-    //       onChange={async (e) => {
-    //         const files = e.target.files;
-    //         console.log(files);
-    //         // const reader = await readImageDICOMFileSeries(files);
-    //         console.log(reader);
-    //       }}
-    //       type="file"
-    //       multiple
-    //     />
-    //     <input type="submit" />
-    //   </form>
-    // ) : (
-    <div>
+    <div style={{ position: "relative" }}>
       <div ref={vtkContainerRef} />
-      <table
-        style={{
-          position: "absolute",
-          top: "25px",
-          left: "25px",
-          background: "white",
-          padding: "12px",
-        }}
-      >
-        <tbody>
-          <tr>
-            <td>
-              <select
-                value={representation}
-                style={{ width: "100%" }}
-                onInput={(ev) => setRepresentation(Number(ev.target.value))}
-              >
-                <option value="0">Points</option>
-                <option value="1">Wireframe</option>
-                <option value="2">Surface</option>
-              </select>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <input
-                type="range"
-                min="4"
-                max="80"
-                value={coneResolution}
-                onChange={(ev) => setConeResolution(Number(ev.target.value))}
-              />
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <HoverMenu></HoverMenu>
     </div>
   );
 }
