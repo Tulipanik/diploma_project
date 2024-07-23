@@ -1,6 +1,6 @@
 "use client";
 
-import Slicer from "../../Components/visualization/Slicer";
+import Slicer from "./../../Components/visualization/Slicer";
 import ConeVisualizator from "./../../Components/visualization/ConeVisualizator";
 import vtkXMLImageDataReader from "@kitware/vtk.js/IO/XML/XMLImageDataReader";
 import { useState } from "react";
@@ -46,12 +46,12 @@ export default function Home() {
         </div>
       ) : (
         <div>
-          <ConeVisualizator
+          {/* <ConeVisualizator
             style={{ width: "50%" }}
             imageReader={binaryData}
             load={load}
-          />
-          {/* <Slicer imageReader={binaryData} load={load} /> */}
+          /> */}
+          <Slicer imageReader={binaryData} load={load} />
         </div>
       )}
     </div>
