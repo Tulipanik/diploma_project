@@ -30,26 +30,14 @@ export default function Slicer({ imageReader }) {
 
   useEffect(() => {
     if (!context.current) {
-      //render window
-      const fullScreenRenderer = vtkGenericRenderWindow.newInstance({
-        background: [0, 0, 0],
-      });
-      fullScreenRenderer.setContainer(vtkContainerRef.current);
-      fullScreenRenderer.resize();
-
-      //image pipeline
-      //interactors
-      const interactor = vtkInteractorStyleImage.newInstance({
-        interactionMode: "IMAGE_SLICE",
-      });
-
-      fullScreenRenderer.getInteractor().setInteractorStyle(interactor);
-
-      //sources and wrappers
+      //sources
       const imageSource = imageReader.getOutputData(0);
 
       //mappers
       const mapper = vtkImageMapper.newInstance();
+      mapper.setSliceAtFocalPoint(true);
+      mapper.setKSlice(30);
+      mapper.setSlicingMode(SlicingMode.K);
 
       //actors
       const actor = vtkImageSlice.newInstance();
@@ -58,19 +46,25 @@ export default function Slicer({ imageReader }) {
       actor.setMapper(mapper);
       mapper.setInputData(imageSource);
 
-      //initials
-      mapper.setSliceAtFocalPoint(true);
-      mapper.setKSlice(30);
-      mapper.setSlicingMode(SlicingMode.K);
-
       //renderer
+      const fullScreenRenderer = vtkGenericRenderWindow.newInstance({
+        background: [0, 0, 0],
+      });
+      fullScreenRenderer.setContainer(vtkContainerRef.current);
+      fullScreenRenderer.resize();
       const renderer = fullScreenRenderer.getRenderer();
-      const renderWindow = fullScreenRenderer.getRenderWindow();
       renderer.addViewProp(actor);
-
-      //camera position
-      // console.log(renderWindow);
       renderer.resetCamera();
+
+      //interactors
+      const interactor = vtkInteractorStyleImage.newInstance({
+        interactionMode: "IMAGE_SLICE",
+      });
+
+      fullScreenRenderer.getInteractor().setInteractorStyle(interactor);
+
+      //render window
+      const renderWindow = fullScreenRenderer.getRenderWindow();
       renderWindow.render();
 
       //widget pipeline
@@ -132,7 +126,7 @@ export default function Slicer({ imageReader }) {
         renderer,
       };
     }
-  });
+  }, []);
 
   const setDrawActive = () => {
     // console.log(widgetElems);
