@@ -16,28 +16,47 @@ import vtkWidgetManager from "@kitware/vtk.js/Widgets/Core/WidgetManager";
 import vtkPaintWidget from "@kitware/vtk.js/Widgets/Widgets3D/PaintWidget";
 import vtkPaintFilter from "@kitware/vtk.js/Filters/General/PaintFilter";
 import { ViewTypes } from "@kitware/vtk.js/Widgets/Core/WidgetManager/Constants";
-import vtkColorTransferFunction from "@kitware/vtk.js/Rendering/Core/ColorTransferFunction";
-import vtkPiecewiseFunction from "@kitware/vtk.js/Common/DataModel/PiecewiseFunction";
+import vtkInteractorStyleTrackballCamera from "@kitware/vtk.js/Interaction/Style/InteractorStyleTrackballCamera";
+import vtkKochanekSpline1D from "@kitware/vtk.js/Common/DataModel/KochanekSpline1D";
+import vtkSplineWidget from "@kitware/vtk.js/Widgets/Widgets3D/SplineWidget";
 
 const { SlicingMode } = ImageConstants;
 
 export default function Slicer({ imageReader }) {
-  let drawingActivity = false;
   const vtkContainerRef = useRef(null);
   const context = useRef(null);
+  const actualSlicingMode = SlicingMode.K;
+  const [widgetMapper, setWidgetMapper] = useState(
+    vtkImageMapper.newInstance()
+  );
+  const [sliceNumber, setSliceNumber] = useState(null);
 
-  const widgetElems = { isInUse: false };
+  const imageSource = imageReader.getOutputData(0);
+  imageSource.indexToWorld
+  const mapperRef = useRef(vtkImageMapper.newInstance());
+  // const paintWidget = vtkPaintWidget.newInstance({
+  //   radius: 1,
+  //   painting: true,
+  // });
+  // let paintHandle;
+
+  let widgetRepresentation;
+  let widgetManager;
+  let widget;
 
   useEffect(() => {
     if (!context.current) {
+      const mapper = mapperRef.current;
+
       //sources
-      const imageSource = imageReader.getOutputData(0);
 
       //mappers
-      const mapper = vtkImageMapper.newInstance();
       mapper.setSliceAtFocalPoint(true);
       mapper.setKSlice(30);
-      mapper.setSlicingMode(SlicingMode.K);
+      mapper.setSlicingMode(actualSlicingMode);
+      // setSliceNumber(mapper.getSlice());
+      // console.log(mapper.getBounds());
+      mapper.onModified(setSliceNumber(mapper.getSlice()));
 
       //actors
       const actor = vtkImageSlice.newInstance();
@@ -63,63 +82,32 @@ export default function Slicer({ imageReader }) {
 
       fullScreenRenderer.getInteractor().setInteractorStyle(interactor);
 
+      //widget pipeline
+      widgetManager = vtkWidgetManager.newInstance();
+      widgetManager.setRenderer(renderer);
+
+      widget = vtkSplineWidget.newInstance();
+      widgetRepresentation = widgetManager.addWidget(widget);
+
+      //widget state
+      // const painter = vtkPaintFilter.newInstance();
+      // painter.setSlicingMode(actualSlicingMode)
+
+      // const widgetActor = vtkImageSlice.newInstance();
+
+      // widgetActor.setMapper(widgetMapper);
+      // mapper.setInputConnection(painter.getOutputData());
+
+      //widget manager
+      const widgetManager = vtkWidgetManager.newInstance({});
+      // widgetManager.setRenderer(renderer);
+      // paintHandle = widgetManager.addWidget(paintWidget, ViewTypes.SLICE);
+      // widgetMapper.onModified(update)
+
       //render window
       const renderWindow = fullScreenRenderer.getRenderWindow();
       renderWindow.render();
 
-      //widget pipeline
-      //mappers
-      const widgetMapper = vtkImageMapper.newInstance();
-
-      //actor
-      const widgetActor = vtkImageSlice.newInstance();
-
-      //widget manager
-      widgetElems.widgetManager = vtkWidgetManager.newInstance();
-      widgetElems.widgetManager.setRenderer(renderer);
-
-      //widgets
-      widgetElems.paintWidget = vtkPaintWidget.newInstance();
-      widgetElems.paintHandle = widgetElems.widgetManager.addWidget(
-        widgetElems.paintWidget,
-        ViewTypes.SLICE
-      );
-
-      widgetElems.painter = vtkPaintFilter.newInstance();
-
-      //painter function elems
-      const colorFunc = vtkColorTransferFunction.newInstance();
-      const subdomains = vtkPiecewiseFunction.newInstance();
-
-      colorFunc.addRGBPoint(1, 0, 0, 1);
-      subdomains.addPoint(0, 0);
-      subdomains.addPoint(1, 1);
-
-      widgetActor.getProperty().setRGBTransferFunction(colorFunc);
-      widgetActor.getProperty().setPiecewiseFunction(subdomains);
-      widgetActor.getProperty().setOpacity(0.5);
-
-      //actors to mappers
-      widgetActor.setMapper(widgetMapper);
-      widgetMapper.setInputConnection(widgetElems.painter.getOutputPort());
-
-      //renderer
-      renderer.addViewProp(widgetActor);
-
-      widgetElems.painter.setBackgroundImage(imageSource);
-      widgetElems.painter.setLabel(1);
-      widgetElems.painter.setSlicingMode(SlicingMode.K);
-
-      widgetElems.paintWidget.getManipulator().setUserOrigin([0, 0, 0]);
-      widgetElems.paintHandle.updateRepresentationForRender();
-
-      widgetElems.paintHandle
-        .getWidgetState()
-        .getHandle()
-        .setDirection([0, 0, 1]);
-
-      widgetElems.paintWidget.setRadius(10);
-      widgetElems.painter.setRadius(10);
       context.current = {
         fullScreenRenderer,
         renderWindow,
@@ -128,55 +116,31 @@ export default function Slicer({ imageReader }) {
     }
   }, []);
 
-  const setDrawActive = () => {
-    // console.log(widgetElems);
-    widgetElems.widgetManager.grabFocus(widgetElems.paintWidget);
-    widgetElems.paintHandle.setVisibility(!widgetElems.isInUse);
-    widgetElems.paintHandle.updateRepresentationForRender();
-
-    widgetElems.paintHandle.onStartInteractionEvent(() => {
-      widgetElems.painter.startStroke();
-      widgetElems.painter.addPoint(
-        widgetElems.paintWidget.getWidgetState().getTrueOrigin()
-      );
-    });
-
-    widgetElems.paintHandle.onInteractionEvent(() => {
-      widgetElems.painter.addPoint(
-        widgetElems.paintWidget.getWidgetState().getTrueOrigin()
-      );
-    });
-    initializeHandle(widgetElems.paintHandle);
+  const createSpline = () => {
+    widgetRepresentation.reset();
+    widgetManager.grabFocus(widget);
   };
 
-  const initializeHandle = (handle) => {
-    handle.onStartInteractionEvent(() => {
-      widgetElems.painter.startStroke();
-    });
-    handle.onEndInteractionEvent(() => {
-      widgetElems.painter.endStroke();
-    });
-  };
+  useEffect(() => {
+    const updateSliceNumber = () => {
+      setSliceNumber(Math.round(mapperRef.current.getSlice()));
+    };
 
-  const setDrawInactive = () => {
-    const handle = widgetElems.paintHandle;
-    // console.log(handle);
-    const nullFunction = () => {};
-    handle.onInteractionEvent(nullFunction);
-    handle.onStartInteractionEvent(nullFunction);
-    handle.onEndInteractionEvent(nullFunction);
-  };
+    const sub = mapperRef.current.onModified(updateSliceNumber);
 
-  const setDrawState = () => {
-    drawingActivity = !drawingActivity;
-    drawingActivity ? setDrawActive() : setDrawInactive();
-  };
+    return () => {
+      if (sub && sub.unsubscribe) {
+        sub.unsubscribe();
+      }
+    };
+  }, []);
 
   return (
     <div>
       <div ref={vtkContainerRef} />
       <HoverMenu>
-        <input type="button" onClick={setDrawState} value="draw!" />
+        <div>slice: {sliceNumber}</div>
+        <button onProgress={() => createSpline()}>create spline</button>
       </HoverMenu>
     </div>
   );
