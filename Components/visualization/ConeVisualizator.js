@@ -19,6 +19,8 @@ import vtkPaintWidget from "@kitware/vtk.js/Widgets/Widgets3D/PaintWidget";
 import { ViewTypes } from "@kitware/vtk.js/Widgets/Core/WidgetManager/Constants";
 import vtkPaintFilter from "@kitware/vtk.js/Filters/General/PaintFilter";
 
+import DrawingManager from "@/lib/drawingManager";
+
 export default function ConeVisualizator({ imageReader }) {
   const vtkContainerRef = useRef(null);
   const context = useRef(null);
@@ -37,6 +39,8 @@ export default function ConeVisualizator({ imageReader }) {
 
   const [radius, setRadius] = useState(1);
   const [drawingActivity, setDrawingActivity] = useState(false);
+
+  const drawingMethods = useRef(null);
 
   useEffect(() => {
     if (!context.current) {
@@ -132,52 +136,24 @@ export default function ConeVisualizator({ imageReader }) {
         actor,
         mapper,
       };
+
+      drawingMethods.current = DrawingManager(
+        widgetManager.current,
+        paintWidget.current,
+        painter.current,
+        paintHandle.current
+      );
+      console.log(drawingMethods);
     }
   }, []);
 
   useEffect(() => {
-    let interactionEventStart;
-    let interactionEvent;
-    let interactionEventEnd;
-
-    const initializePainter = () => {
-
-      interactionEventStart = paintHandle.current.onStartInteractionEvent(
-        () => {
-          painter.current.startStroke();
-          painter.current.addPoint(
-            paintWidget.current.getWidgetState().getTrueOrigin()
-          );
-        }
-      );
-      interactionEvent = paintHandle.current.onInteractionEvent(() => {
-        painter.current.addPoint(
-          paintWidget.current.getWidgetState().getTrueOrigin()
-        );
-      });
-      interactionEventEnd = paintHandle.current.onEndInteractionEvent(() => {
-        painter.current.endStroke();
-      });
-    };
-
     if (drawingActivity) {
-      widgetManager.current.enablePicking();
-      widgetManager.current.grabFocus(paintWidget.current);
-      initializePainter();
+      drawingMethods.current.turnOn();
     }
 
     return () => {
-      widgetManager.current.disablePicking();
-      widgetManager.current.releaseFocus();
-      if (interactionEventStart && interactionEventStart.unsubscribe) {
-        interactionEventStart.unsubscribe();
-      }
-      if (interactionEvent && interactionEvent.unsubscribe) {
-        interactionEvent.unsubscribe();
-      }
-      if (interactionEventEnd && interactionEventEnd.unsubscribe) {
-        interactionEventEnd.unsubscribe();
-      }
+      drawingMethods.current.turnOff();
     };
   }, [drawingActivity]);
 
