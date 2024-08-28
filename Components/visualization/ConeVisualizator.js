@@ -1,154 +1,3 @@
-// "use client";
-
-// import { useState, useRef, useEffect } from "react";
-
-// import HoverMenu from "./HoverMenu";
-
-// import "@kitware/vtk.js/Rendering/Profiles/Geometry";
-// import "@kitware/vtk.js/Rendering/Profiles/Volume";
-
-// import vtkVolume from "@kitware/vtk.js/Rendering/Core/Volume";
-// import vtkVolumeMapper from "@kitware/vtk.js/Rendering/Core/VolumeMapper";
-// import vtkGenericRenderWindow from "@kitware/vtk.js/Rendering/Misc/GenericRenderWindow";
-
-// import vtkPiecewiseFunction from "@kitware/vtk.js/Common/DataModel/PiecewiseFunction";
-// import vtkColorTransferFunction from "@kitware/vtk.js/Rendering/Core/ColorTransferFunction";
-// import vtkColorMaps from "@kitware/vtk.js/Rendering/Core/ColorTransferFunction/ColorMaps";
-// import vtkWidgetManager from "@kitware/vtk.js/Widgets/Core/WidgetManager";
-// import vtkPaintWidget from "@kitware/vtk.js/Widgets/Widgets3D/PaintWidget";
-// import vtkPaintFilter from "@kitware/vtk.js/Filters/General/PaintFilter";
-
-// import { CaptureOn } from "@kitware/vtk.js/Widgets/Core/WidgetManager/Constants";
-
-// const initialParameters = {
-//   paintRadius: 5,
-//   label: 1,
-// };
-
-// const WIDGET_BUILDERS = {
-//   Paint: (widgetManager) => {
-//     const instance = {
-//       widget: widgetManager.addWidget(vtkPaintWidget.newInstance()),
-//       filter: vtkPaintFilter.newInstance(),
-//     };
-
-//     // console.log(instance.filter);
-
-//     // instance.widget.setRadius(initialParameters.paintRadius);
-//     instance.filter.setLabel(initialParameters.label);
-//     instance.filter.setRadius(initialParameters.paintRadius);
-//     return instance;
-//   },
-// };
-
-// export default function ConeVisualizator({ imageReader, load }) {
-//   const imageSource = useRef(imageReader.getOutputData(0)).current;
-//   const vtkContainerRef = useRef(null);
-//   const context = useRef(null);
-//   const widgetManager = useRef(vtkWidgetManager.newInstance()).current;
-//   const activeWidget = useRef(null).current;
-//   // const paintFilter = useRef(vtkPaintFilter.newInstance()).current;
-
-//   //setting filters
-
-//   const colorMapTable = vtkColorTransferFunction.newInstance();
-//   colorMapTable.applyColorMap(vtkColorMaps.getPresetByName("Grayscale"));
-//   colorMapTable.setMappingRange(0, 256);
-//   colorMapTable.updateRange();
-
-//   const subdomains = vtkPiecewiseFunction.newInstance();
-
-//   const start = 32;
-//   const end = 256;
-//   const steps = 20;
-//   const startStep = 0;
-//   for (let i = startStep; i <= steps; i++) {
-//     subdomains.addPoint(
-//       start + (i * (end - start)) / steps,
-//       (i - startStep) / (steps - startStep)
-//     );
-//   }
-
-//   useEffect(() => {
-//     if (!context.current) {
-//       //window renderer
-//       const fullScreenRenderer = vtkGenericRenderWindow.newInstance();
-//       fullScreenRenderer.setContainer(vtkContainerRef.current);
-//       fullScreenRenderer.resize();
-
-//       //renderer
-//       const renderer = fullScreenRenderer.getRenderer();
-//       const renderWindow = fullScreenRenderer.getRenderWindow();
-
-//       // //sources and wrappers
-//       // const imageSource = imageReader.getOutputData(0);
-
-//       //mappers
-//       const mapper = vtkVolumeMapper.newInstance();
-//       mapper.setSampleDistance(0.7);
-
-//       //actors
-//       const actor = vtkVolume.newInstance();
-
-//       actor.getProperty().setScalarOpacity(0, subdomains);
-//       actor.getProperty().setRGBTransferFunction(0, colorMapTable);
-
-//       //actors to mappers
-//       actor.setMapper(mapper);
-//       mapper.setInputData(imageSource);
-
-//       renderer.getActiveCamera().setParallelProjection(true);
-
-//       renderer.addActor(actor);
-//       renderer.resetCamera();
-//       renderer.updateLightsGeometryToFollowCamera();
-//       renderWindow.render();
-
-//       widgetManager.setCaptureOn(CaptureOn.MOUSE_RELEASE);
-//       widgetManager.setRenderer(renderer);
-
-//       //widgetPlacelemt
-//       // Object.entries(WIDGET_BUILDERS).forEach(([_, builder]) => {
-//       //   console.log(builder);
-//       //   const widget = builder(widgetManager).widget;
-//       //   console.log(imageSource);
-//       //   widget.placeWidget(imageSource.getBounds());
-//       //   widget.setPlaceFactor(2);
-//       //   widgetManager.enablePicking();
-//       //   renderWindow.render();
-//       //   console.log("siema");
-//       // });
-
-//       // context.current = {
-//       //   fullScreenRenderer,
-//       //   renderWindow,
-//       //   renderer,
-//       //   actor,
-//       //   mapper,
-//       // };
-//     }
-
-//     return () => {
-//       if (context.current) {
-//         const { fullScreenRenderer, coneSource, actor, mapper } =
-//           context.current;
-//         // actor.delete();
-//         // mapper.delete();
-//         // coneSource.delete();
-//         // fullScreenRenderer.delete();
-//         context.current = null;
-//       }
-//     };
-//   }, [vtkContainerRef]);
-
-//   return (
-//     <div style={{ position: "relative" }}>
-//       <div ref={vtkContainerRef} />
-//       <HoverMenu></HoverMenu>
-//     </div>
-//   );
-// }
-
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -168,29 +17,30 @@ import vtkColorMaps from "@kitware/vtk.js/Rendering/Core/ColorTransferFunction/C
 import vtkWidgetManager from "@kitware/vtk.js/Widgets/Core/WidgetManager";
 import vtkPaintWidget from "@kitware/vtk.js/Widgets/Widgets3D/PaintWidget";
 import { ViewTypes } from "@kitware/vtk.js/Widgets/Core/WidgetManager/Constants";
+import vtkPaintFilter from "@kitware/vtk.js/Filters/General/PaintFilter";
 
-const WIDGETS = {
-  paintWidget: vtkPaintWidget.newInstance(),
-};
-
-export default function ConeVisualizator({ imageReader, load }) {
+export default function ConeVisualizator({ imageReader }) {
   const vtkContainerRef = useRef(null);
   const context = useRef(null);
-  // const widgetManager = useRef(vtkWidgetManager.newInstance());
-  // const widgetHandlers = useRef({});
+
+  //3d elements
+  const imageSource = imageReader.getOutputData(0);
+
+  //labelmap elements
+  const labelMapMapper = useRef(vtkVolumeMapper.newInstance());
+  const painter = useRef(vtkPaintFilter.newInstance({}));
+
+  //widget elements
+  const paintHandle = useRef(null);
+  const paintWidget = useRef(null);
+  const widgetManager = useRef(vtkWidgetManager.newInstance());
+
+  const [radius, setRadius] = useState(1);
+  const [drawingActivity, setDrawingActivity] = useState(false);
 
   useEffect(() => {
     if (!context.current) {
-      // //widget management
-      // widgetHandlers.current.paintHandle = widgetManager.current.addWidget(
-      //   WIDGETS.paintWidget,
-      //   ViewTypes.DEFAULT
-      // );
-      // widgetManager.current.grabFocus(WIDGETS.paintWidget);
-
-      //sources
-      const imageSource = imageReader.getOutputData(0);
-
+      //3d render pipeline
       //filters
       const colorMapTable = vtkColorTransferFunction.newInstance();
       colorMapTable.applyColorMap(vtkColorMaps.getPresetByName("Grayscale"));
@@ -234,6 +84,43 @@ export default function ConeVisualizator({ imageReader, load }) {
       renderer.getActiveCamera().setParallelProjection(true);
       renderer.resetCamera();
 
+      //labelmap pipeline
+      //filters
+      const colorTransferFunction = vtkColorTransferFunction.newInstance();
+      colorTransferFunction.addRGBPoint(1, 0, 0, 1); //label 1 color
+
+      const piecewiseFunction = vtkPiecewiseFunction.newInstance();
+      piecewiseFunction.addPoint(0, 0);
+      piecewiseFunction.addPoint(1, 1);
+
+      painter.current.setBackgroundImage(imageSource);
+      painter.current.setLabel(1);
+      painter.current.setRadius(5);
+
+      //actor
+      const labelMapActor = vtkVolume.newInstance({});
+      labelMapActor
+        .getProperty()
+        .setRGBTransferFunction(0, colorTransferFunction);
+      labelMapActor.getProperty().setScalarOpacity(0, piecewiseFunction);
+
+      //actors to mappers
+      labelMapActor.setMapper(labelMapMapper.current);
+      labelMapMapper.current.setInputConnection(
+        painter.current.getOutputPort()
+      );
+
+      renderer.addVolume(labelMapActor);
+
+      //widget pipeline
+      widgetManager.current.setRenderer(renderer);
+
+      paintWidget.current = vtkPaintWidget.newInstance();
+      paintHandle.current = widgetManager.current.addWidget(
+        paintWidget.current,
+        ViewTypes.VOLUME
+      );
+
       //render window
       const renderWindow = fullScreenRenderer.getRenderWindow();
       renderWindow.render();
@@ -246,20 +133,66 @@ export default function ConeVisualizator({ imageReader, load }) {
         mapper,
       };
     }
+  }, []);
+
+  useEffect(() => {
+    let interactionEventStart;
+    let interactionEvent;
+    let interactionEventEnd;
+
+    const initializePainter = () => {
+
+      interactionEventStart = paintHandle.current.onStartInteractionEvent(
+        () => {
+          painter.current.startStroke();
+          painter.current.addPoint(
+            paintWidget.current.getWidgetState().getTrueOrigin()
+          );
+        }
+      );
+      interactionEvent = paintHandle.current.onInteractionEvent(() => {
+        painter.current.addPoint(
+          paintWidget.current.getWidgetState().getTrueOrigin()
+        );
+      });
+      interactionEventEnd = paintHandle.current.onEndInteractionEvent(() => {
+        painter.current.endStroke();
+      });
+    };
+
+    if (drawingActivity) {
+      widgetManager.current.enablePicking();
+      widgetManager.current.grabFocus(paintWidget.current);
+      initializePainter();
+    }
 
     return () => {
-      if (context.current) {
-        const { fullScreenRenderer, coneSource, actor, mapper } =
-          context.current;
-        context.current = null;
+      widgetManager.current.disablePicking();
+      widgetManager.current.releaseFocus();
+      if (interactionEventStart && interactionEventStart.unsubscribe) {
+        interactionEventStart.unsubscribe();
+      }
+      if (interactionEvent && interactionEvent.unsubscribe) {
+        interactionEvent.unsubscribe();
+      }
+      if (interactionEventEnd && interactionEventEnd.unsubscribe) {
+        interactionEventEnd.unsubscribe();
       }
     };
-  }, []);
+  }, [drawingActivity]);
 
   return (
     <div style={{ position: "relative" }}>
       <div ref={vtkContainerRef} />
-      <HoverMenu></HoverMenu>
+      <HoverMenu>
+        <button
+          onClick={() => {
+            setDrawingActivity(!drawingActivity);
+          }}
+        >
+          draw!
+        </button>
+      </HoverMenu>
     </div>
   );
 }
