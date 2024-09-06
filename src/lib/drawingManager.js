@@ -3,22 +3,39 @@ export default function DrawingManager(
   paintWidget,
   painter,
   paintHandle,
-  radius = 1
+  slice = null
 ) {
-  // let radius = 1;
   let interactionEventStart;
   let interactionEvent;
   let interactionEventEnd;
 
+  const sliceChecker = (pointToAdd, slice) => {
+    if (slice) {
+      pointToAdd[2] = slice;
+    }
+    return pointToAdd;
+  };
+
   return {
     turnOn: () => {
+      console.log("slice:" + slice);
+
       widgetManager.enablePicking();
       widgetManager.grabFocus(paintWidget);
       interactionEventStart = paintHandle.onStartInteractionEvent(() => {
         painter.startStroke();
-        painter.addPoint(paintWidget.getWidgetState().getTrueOrigin());
+        const pointToAdd = sliceChecker(
+          paintWidget.getWidgetState().getTrueOrigin(),
+          slice
+        );
+        console.log(paintWidget.getWidgetState().getTrueOrigin());
+        painter.addPoint(pointToAdd);
       });
       interactionEvent = paintHandle.onInteractionEvent(() => {
+        const pointToAdd = sliceChecker(
+          paintWidget.getWidgetState().getTrueOrigin(),
+          slice
+        );
         painter.addPoint(paintWidget.getWidgetState().getTrueOrigin());
       });
       interactionEventEnd = paintHandle.onEndInteractionEvent(() => {
@@ -40,6 +57,12 @@ export default function DrawingManager(
     },
     setRadius: (newVal) => {
       radius = newVal;
+    },
+    updateSlice: (newSlice) => {
+      slice = slice != null && newSlice;
+    },
+    updatePaintWidget: (position) => {
+      paintWidget.getManipulator().setUserOrigin(position);
     },
   };
 }
