@@ -19,9 +19,44 @@ import { ViewTypes } from "@kitware/vtk.js/Widgets/Core/WidgetManager/Constants"
 import vtkColorTransferFunction from "@kitware/vtk.js/Rendering/Core/ColorTransferFunction";
 import vtkPiecewiseFunction from "@kitware/vtk.js/Common/DataModel/PiecewiseFunction";
 
+import vtkBezieWidget from "@/lib/Widgets/BezieCurve";
+
 import DrawingManager from "@/lib/drawingManager";
+import BezieModel, { Point } from "@/lib/Models/BezieModel";
 
 const { SlicingMode } = ImageConstants;
+
+function interpolateLinePoints(startPoint, endPoint, numSteps) {
+  const points = [];
+  const step = [
+    (endPoint[0] - startPoint[0]) / numSteps,
+    (endPoint[1] - startPoint[1]) / numSteps,
+    (endPoint[2] - startPoint[2]) / numSteps,
+  ];
+
+  for (let i = 0; i <= numSteps; i++) {
+    const interpolatedPoint = [
+      startPoint[0] + i * step[0],
+      startPoint[1] + i * step[1],
+      startPoint[2] + i * step[2],
+    ];
+    points.push(interpolatedPoint);
+  }
+  return points;
+}
+
+function drawLine(paintFilter, startPoint, endPoint, numSteps = 100) {
+  const interpolatedPoints = interpolateLinePoints(
+    startPoint,
+    endPoint,
+    numSteps
+  );
+  // console.log(interpolatedPoints);
+
+  interpolatedPoints.forEach((point) => {
+    paintFilter.addPoint(point);
+  });
+}
 
 export default function Slicer({ imageReader }) {
   const vtkContainerRef = useRef(null);
@@ -34,17 +69,21 @@ export default function Slicer({ imageReader }) {
   const [sliceNumber, setSliceNumber] = useState(0);
   const [radius, setRadius] = useState(1);
   const [drawingActivity, setDrawingActivity] = useState(false);
+  const [drawingActivity2, setDrawingActivity2] = useState(false);
+  const [color, setColor] = useState("#ffffff");
+  const [label, setLabel] = useState(1);
 
   //image elements
   const imageSource = imageReader.getOutputData(0);
 
   const drawingMethods = useRef(null);
+  const drawingMethods2 = useRef(null);
 
   useEffect(() => {
     if (!context.current) {
       //image pipeline
 
-      console.log(imageSource.indexToWorld);
+      // console.log(imageSource.indexToWorld);
       //mapper
       const mapper = vtkImageMapper.newInstance({});
       mapper.setSliceAtFocalPoint(true);
@@ -80,6 +119,7 @@ export default function Slicer({ imageReader }) {
       //filters
       const colorTransferFunction = vtkColorTransferFunction.newInstance();
       colorTransferFunction.addRGBPoint(1, 0, 0, 1); //label 1 color
+      colorTransferFunction.addRGBPoint(0.2, 0.5, 0, 1); //label 1 color
 
       const piecewiseFunction = vtkPiecewiseFunction.newInstance();
       piecewiseFunction.addPoint(0, 0);
@@ -106,11 +146,27 @@ export default function Slicer({ imageReader }) {
       //widget pipeline
       const widgetManager = vtkWidgetManager.newInstance({});
       const paintWidget = vtkPaintWidget.newInstance({});
+      const bezieWidget = vtkBezieWidget.newInstance({
+        resetAfterPointPlacement: true,
+        resolution: 1,
+      });
 
       widgetManager.setRenderer(renderer);
       const paintHandle = widgetManager.addWidget(paintWidget, ViewTypes.SLICE);
+      const bezieHandle = widgetManager.addWidget(bezieWidget, ViewTypes.SLICE);
 
-      widgetManager.grabFocus(paintWidget);
+      bezieHandle.setOutputBorder(true);
+
+      bezieHandle.setHandleSizeInPixels(
+        2 * Math.max(...imageSource.getSpacing())
+      );
+      bezieHandle.setFreehandMinDistance(
+        4 * Math.max(...imageSource.getSpacing())
+      );
+
+      // console.log(bezieHandle);
+
+      // widgetManager.grabFocus(paintWidget);
 
       //render window
       const renderWindow = fullScreenRenderer.getRenderWindow();
@@ -121,6 +177,7 @@ export default function Slicer({ imageReader }) {
         renderWindow,
         renderer,
         mapper,
+        colorTransferFunction,
       };
 
       labelmapContext.current = {
@@ -133,6 +190,8 @@ export default function Slicer({ imageReader }) {
         widgetManager,
         paintWidget,
         paintHandle,
+        bezieWidget,
+        bezieHandle,
       };
 
       drawingMethods.current = DrawingManager(
@@ -142,17 +201,21 @@ export default function Slicer({ imageReader }) {
         paintHandle,
         sliceNumber
       );
+      // drawingMethods2.current = DrawingManager(
+      //   widgetManager,
+      //   bezieWidget,
+      //   painter,
+      //   bezieHandle,
+      //   sliceNumber
+      // );
     }
   }, []);
 
   useEffect(() => {
     const updateSliceNumber = () => {
-      const currentSlice = Math.round(context.current.mapper.getSlice());
+      const currentSlice = context.current.mapper.getSlice();
       labelmapContext.current.labelMapMapper.set(
-        context.current.mapper.get("slice", "slicingMode")
-      );
-      drawingMethods.current.updateSlice(
-        context.current.mapper.get("slice").slice
+        context.current.mapper.get("slice")
       );
 
       const ijk = [0, 0, 0];
@@ -162,7 +225,13 @@ export default function Slicer({ imageReader }) {
       ijk[slicingMode] = context.current.mapper.getSlice();
       imageSource.indexToWorld(ijk, position);
 
+      widgetContext.current.bezieWidget
+        .getManipulator()
+        .setUserOrigin(position);
+      widgetContext.current.bezieHandle.updateRepresentationForRender();
+
       drawingMethods.current.updatePaintWidget(position);
+      // drawingMethods2.current.updatePaintWidget(position);
 
       context.current.renderWindow.render();
       setSliceNumber(currentSlice);
@@ -194,7 +263,88 @@ export default function Slicer({ imageReader }) {
   useEffect(() => {
     widgetContext.current.paintHandle.setVisibility(drawingActivity);
     widgetContext.current.paintHandle.updateRepresentationForRender();
+    widgetContext.current.bezieHandle.setVisibility(drawingActivity2);
+
+    widgetContext.current.bezieHandle.updateRepresentationForRender();
   }, [drawingActivity]);
+
+  useEffect(() => {
+    // console.log("siema");
+
+    // console.log(widgetContext.current.bezieHandle);
+
+    widgetContext.current.bezieHandle.reset();
+    widgetContext.current.bezieHandle.setVisibility(drawingActivity2);
+    widgetContext.current.bezieHandle.updateRepresentationForRender();
+
+    widgetContext.current.widgetManager.enablePicking();
+    widgetContext.current.widgetManager.grabFocus(
+      widgetContext.current.bezieWidget
+    );
+    const interactionEventStart =
+      widgetContext.current.bezieHandle.onStartInteractionEvent(() => {
+        labelmapContext.current.painter.startStroke();
+      });
+
+    const interactionEventEnd =
+      widgetContext.current.bezieHandle.onEndInteractionEvent(() => {
+        const points = Array.from(
+          widgetContext.current.bezieHandle.getPoints()
+        );
+        const vectorSize = 3;
+        let vectors = [];
+        for (let i = 0; i < points.length; i += vectorSize) {
+          vectors.push(
+            new Point(
+              [parseInt(i / vectorSize) + 1, 0],
+              points[i],
+              points[i + 1],
+              points[i + 2]
+            )
+          );
+        }
+
+        const bezieModel = BezieModel(vectors);
+        bezieModel.drawCurve(labelmapContext.current.painter);
+
+        const RESOLUTION = 25;
+        const newPoints = [];
+
+        const pointSteps = [];
+
+        for (let i = 0; i < points.length - 6; i += 3) {
+          pointSteps.push(
+            parseFloat(Math.abs(points[i + 1] - points[i]) / RESOLUTION)
+          );
+          newPoints.push(points[i]);
+        }
+
+        let prevPoints = [];
+
+        for (let i = 0; i < RESOLUTION; i++) {
+          prevPoints = [...newPoints];
+          newPoints.forEach((elem, index) => {
+            const newPoint = elem + pointSteps[index];
+            // console.log("line drawing");
+
+            drawLine(labelmapContext.current.painter, elem, newPoint);
+            newPoints[index] = newPoint;
+          });
+
+          // console.log(newPoints);
+        }
+
+        labelmapContext.current.painter.endStroke();
+      });
+
+    return () => {
+      interactionEventStart.unsubscribe();
+      interactionEventEnd.unsubscribe();
+      widgetContext.current.widgetManager.releaseFocus(
+        widgetContext.current.bezieWidget
+      );
+    };
+  }, [drawingActivity2]);
 
   const undo = () => {
     labelmapContext.current.painter.undo();
@@ -217,9 +367,12 @@ export default function Slicer({ imageReader }) {
         step="1"
       />
       <HoverMenu>
-        <div>slice: {sliceNumber}</div>
+        <div>slice: {Math.round(sliceNumber)}</div>
         <button onClick={() => setDrawingActivity(!drawingActivity)}>
           draw
+        </button>
+        <button onClick={() => setDrawingActivity2(!drawingActivity2)}>
+          drawBezie
         </button>
         <button onClick={() => undo()}>undo</button>
         <button onClick={() => redo()}>redo</button>
@@ -230,6 +383,13 @@ export default function Slicer({ imageReader }) {
           max="100"
           value={radius}
           step="1"
+        />
+        <input
+          type="color"
+          value={color}
+          onChange={(e) => {
+            setColor(e.target.value);
+          }}
         />
       </HoverMenu>
     </div>
