@@ -51,7 +51,6 @@ function drawLine(paintFilter, startPoint, endPoint, numSteps = 100) {
     endPoint,
     numSteps
   );
-  // console.log(interpolatedPoints);
 
   interpolatedPoints.forEach((point) => {
     paintFilter.addPoint(point);
@@ -83,7 +82,6 @@ export default function Slicer({ imageReader }) {
     if (!context.current) {
       //image pipeline
 
-      // console.log(imageSource.indexToWorld);
       //mapper
       const mapper = vtkImageMapper.newInstance({});
       mapper.setSliceAtFocalPoint(true);
@@ -146,10 +144,7 @@ export default function Slicer({ imageReader }) {
       //widget pipeline
       const widgetManager = vtkWidgetManager.newInstance({});
       const paintWidget = vtkPaintWidget.newInstance({});
-      const bezieWidget = vtkBezieWidget.newInstance({
-        resetAfterPointPlacement: true,
-        resolution: 1,
-      });
+      const bezieWidget = vtkBezieWidget.newInstance();
 
       widgetManager.setRenderer(renderer);
       const paintHandle = widgetManager.addWidget(paintWidget, ViewTypes.SLICE);
@@ -163,8 +158,6 @@ export default function Slicer({ imageReader }) {
       bezieHandle.setFreehandMinDistance(
         4 * Math.max(...imageSource.getSpacing())
       );
-
-      // console.log(bezieHandle);
 
       // widgetManager.grabFocus(paintWidget);
 
@@ -214,6 +207,7 @@ export default function Slicer({ imageReader }) {
   useEffect(() => {
     const updateSliceNumber = () => {
       const currentSlice = context.current.mapper.getSlice();
+
       labelmapContext.current.labelMapMapper.set(
         context.current.mapper.get("slice")
       );
@@ -269,10 +263,6 @@ export default function Slicer({ imageReader }) {
   }, [drawingActivity]);
 
   useEffect(() => {
-    // console.log("siema");
-
-    // console.log(widgetContext.current.bezieHandle);
-
     widgetContext.current.bezieHandle.reset();
     widgetContext.current.bezieHandle.setVisibility(drawingActivity2);
     widgetContext.current.bezieHandle.updateRepresentationForRender();
@@ -288,51 +278,48 @@ export default function Slicer({ imageReader }) {
 
     const interactionEventEnd =
       widgetContext.current.bezieHandle.onEndInteractionEvent(() => {
-        const points = Array.from(
-          widgetContext.current.bezieHandle.getPoints()
-        );
-        const vectorSize = 3;
-        let vectors = [];
-        for (let i = 0; i < points.length; i += vectorSize) {
-          vectors.push(
-            new Point(
-              [parseInt(i / vectorSize) + 1, 0],
-              points[i],
-              points[i + 1],
-              points[i + 2]
-            )
-          );
-        }
+        // const points = Array.from(
+        //   widgetContext.current.bezieHandle.getPoints()
+        // );
+        // const vectorSize = 3;
+        // let vectors = [];
+        // for (let i = 0; i < points.length; i += vectorSize) {
+        //   vectors.push(
+        //     new Point(
+        //       [parseInt(i / vectorSize) + 1, 0],
+        //       points[i],
+        //       points[i + 1],
+        //       points[i + 2]
+        //     )
+        //   );
+        // }
 
-        const bezieModel = BezieModel(vectors);
-        bezieModel.drawCurve(labelmapContext.current.painter);
+        // const bezieModel = BezieModel(vectors);
+        // bezieModel.drawCurve(labelmapContext.current.painter);
 
-        const RESOLUTION = 25;
-        const newPoints = [];
+        // const RESOLUTION = 25;
+        // const newPoints = [];
 
-        const pointSteps = [];
+        // const pointSteps = [];
 
-        for (let i = 0; i < points.length - 6; i += 3) {
-          pointSteps.push(
-            parseFloat(Math.abs(points[i + 1] - points[i]) / RESOLUTION)
-          );
-          newPoints.push(points[i]);
-        }
+        // for (let i = 0; i < points.length - 6; i += 3) {
+        //   pointSteps.push(
+        //     parseFloat(Math.abs(points[i + 1] - points[i]) / RESOLUTION)
+        //   );
+        //   newPoints.push(points[i]);
+        // }
 
-        let prevPoints = [];
+        // let prevPoints = [];
 
-        for (let i = 0; i < RESOLUTION; i++) {
-          prevPoints = [...newPoints];
-          newPoints.forEach((elem, index) => {
-            const newPoint = elem + pointSteps[index];
-            // console.log("line drawing");
+        // for (let i = 0; i < RESOLUTION; i++) {
+        //   prevPoints = [...newPoints];
+        //   newPoints.forEach((elem, index) => {
+        //     const newPoint = elem + pointSteps[index];
 
-            drawLine(labelmapContext.current.painter, elem, newPoint);
-            newPoints[index] = newPoint;
-          });
-
-          // console.log(newPoints);
-        }
+        //     drawLine(labelmapContext.current.painter, elem, newPoint);
+        //     newPoints[index] = newPoint;
+        //   });
+        // }
 
         labelmapContext.current.painter.endStroke();
       });
@@ -346,6 +333,10 @@ export default function Slicer({ imageReader }) {
     };
   }, [drawingActivity2]);
 
+  useEffect(() => {
+    context.current.mapper.setKSlice(sliceNumber);
+  }, [sliceNumber]);
+
   const undo = () => {
     labelmapContext.current.painter.undo();
   };
@@ -358,12 +349,11 @@ export default function Slicer({ imageReader }) {
     <div>
       <div ref={vtkContainerRef} />
       <input
-        style={{ position: "absolute", zIndex: 3 }}
-        onChange={(e) => setRadius(e.target.value)}
+        onChange={(e) => setSliceNumber(e.target.value)}
         type="range"
         min="0"
         max="100"
-        value={radius}
+        value={sliceNumber}
         step="1"
       />
       <HoverMenu>
@@ -377,6 +367,7 @@ export default function Slicer({ imageReader }) {
         <button onClick={() => undo()}>undo</button>
         <button onClick={() => redo()}>redo</button>
         <input
+          style={{ position: "absolute", zIndex: 3 }}
           onChange={(e) => setRadius(e.target.value)}
           type="range"
           min="0"

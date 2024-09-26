@@ -17,7 +17,7 @@ class Node {
 
 export default function BezieModel(points = []) {
   const RESOLUTION = 25;
-  const P = 3  > points.length ? points.length : 3;
+  const P = 3 > points.length ? points.length : 3;
   let bezieCurvePoints = [];
   let knotVector;
 
@@ -58,7 +58,7 @@ export default function BezieModel(points = []) {
       let knotVectorPointer = 0;
       u += step;
 
-      console.log(u);
+      // console.log(u);
 
       for (
         knotVectorPointer;
@@ -102,12 +102,12 @@ export default function BezieModel(points = []) {
       points = newPoints;
     },
     drawCurve: (painter) => {
-      console.log(points);
+      // console.log(points);
 
       createBezieModel();
 
       bezieCurvePoints.forEach((elem) => {
-        console.log(elem);
+        // console.log(elem);
 
         painter.setRadius(5);
         painter.addPoint([elem.x, elem.y, elem.z]);

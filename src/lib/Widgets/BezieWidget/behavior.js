@@ -40,10 +40,6 @@ function widgetBehavior(publicAPI, model) {
       ) >
         publicAPI.getFreehandMinDistance() * publicAPI.getFreehandMinDistance()
     ) {
-      // console.log(model.lastHandle);
-      // console.log(model.firstHandle);
-      // console.log(model.moveHandle.getScale1());
-
       model.lastHandle = model.widgetState.addHandle();
       model.lastHandle.setVisible(true);
       model.lastHandle.setOrigin(...model.moveHandle.getOrigin());
@@ -102,11 +98,8 @@ function widgetBehavior(publicAPI, model) {
   // Display 2D
   // --------------------------------------------------------------------------
 
-  publicAPI.setDisplayCallback = (callback) => {
-    console.log(model.representations);
-
+  publicAPI.setDisplayCallback = (callback) =>
     model.representations[0].setDisplayCallback(callback);
-  };
 
   // --------------------------------------------------------------------------
   // Public methods
@@ -216,8 +209,6 @@ function widgetBehavior(publicAPI, model) {
       } else {
         const hoveredHandle = getHoveredHandle();
         if (hoveredHandle && !model.keysDown.Control) {
-          console.log("siema");
-
           model.moveHandle.deactivate();
           model.moveHandle.setVisible(false);
           model.activeState = hoveredHandle;

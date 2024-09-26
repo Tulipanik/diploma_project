@@ -6,7 +6,8 @@ import widgetBehavior from "./BezieWidget/behavior.js";
 import generateState from "./BezieWidget/state.js";
 import { ViewTypes } from "@kitware/vtk.js/Widgets/Core/WidgetManager/Constants.js";
 
-import vtkSplineContextRepresentation from "@kitware/vtk.js/Widgets/Representations/SplineContextRepresentation.js";
+// import vtkSplineContextRepresentation from "@kitware/vtk.js/Widgets/Representations/SplineContextRepresentation.js";
+import vtkCurveContextRepresentation from "./vtkCurveContextRepresentation.js";
 
 // ----------------------------------------------------------------------------
 // Factory
@@ -42,7 +43,7 @@ function vtkBezieWidget(publicAPI, model) {
             labels: ["handles", "moveHandle"],
           },
           {
-            builder: vtkSplineContextRepresentation,
+            builder: vtkCurveContextRepresentation,
             labels: ["handles", "moveHandle"],
           },
         ];
