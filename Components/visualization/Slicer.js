@@ -6,7 +6,6 @@ import HoverMenu from "./HoverMenu";
 
 import "@kitware/vtk.js/Rendering/Profiles/Volume";
 
-import ImageConstants from "@kitware/vtk.js/Rendering/Core/ImageMapper/Constants";
 import vtkGenericRenderWindow from "@kitware/vtk.js/Rendering/Misc/GenericRenderWindow";
 import vtkInteractorStyleImage from "@kitware/vtk.js/Interaction/Style/InteractorStyleImage";
 import vtkImageSlice from "@kitware/vtk.js/Rendering/Core/ImageSlice";
@@ -24,47 +23,24 @@ import vtkBezieWidget from "@/lib/Widgets/BezieCurve";
 import DrawingManager from "@/lib/drawingManager";
 import BezieModel, { Point } from "@/lib/Models/BezieModel";
 
-const { SlicingMode } = ImageConstants;
-
-function interpolateLinePoints(startPoint, endPoint, numSteps) {
-  const points = [];
-  const step = [
-    (endPoint[0] - startPoint[0]) / numSteps,
-    (endPoint[1] - startPoint[1]) / numSteps,
-    (endPoint[2] - startPoint[2]) / numSteps,
-  ];
-
-  for (let i = 0; i <= numSteps; i++) {
-    const interpolatedPoint = [
-      startPoint[0] + i * step[0],
-      startPoint[1] + i * step[1],
-      startPoint[2] + i * step[2],
-    ];
-    points.push(interpolatedPoint);
-  }
-  return points;
+function setCamera(sliceMode, renderer, data) {
+  const ijk = [0, 0, 0];
+  const position = [0, 0, 0];
+  const focalPoint = [0, 0, 0];
+  data.indexToWorld(ijk, focalPoint);
+  ijk[sliceMode] = 1;
+  data.indexToWorld(ijk, position);
+  renderer.getActiveCamera().set({ focalPoint, position });
+  renderer.resetCamera();
 }
 
-function drawLine(paintFilter, startPoint, endPoint, numSteps = 100) {
-  const interpolatedPoints = interpolateLinePoints(
-    startPoint,
-    endPoint,
-    numSteps
-  );
-
-  interpolatedPoints.forEach((point) => {
-    paintFilter.addPoint(point);
-  });
-}
-
-export default function Slicer({ imageReader }) {
+export default function Slicer({ imageReader, actualSlicingMode }) {
   const vtkContainerRef = useRef(null);
   const context = useRef(null);
   const labelmapContext = useRef(null);
   const widgetContext = useRef(null);
 
   //UI parameters
-  const actualSlicingMode = SlicingMode.K;
   const [sliceNumber, setSliceNumber] = useState(0);
   const [radius, setRadius] = useState(1);
   const [drawingActivity, setDrawingActivity] = useState(false);
@@ -76,7 +52,6 @@ export default function Slicer({ imageReader }) {
   const imageSource = imageReader.getOutputData(0);
 
   const drawingMethods = useRef(null);
-  const drawingMethods2 = useRef(null);
 
   useEffect(() => {
     if (!context.current) {
@@ -84,10 +59,9 @@ export default function Slicer({ imageReader }) {
 
       //mapper
       const mapper = vtkImageMapper.newInstance({});
-      mapper.setSliceAtFocalPoint(true);
-      mapper.setKSlice(sliceNumber);
       mapper.setSlicingMode(actualSlicingMode);
-      mapper.onModified(setSliceNumber(mapper.getSlice()));
+      mapper.set({ slice: sliceNumber });
+      mapper.onModified(setSliceNumber(mapper.get("slice").slice));
 
       //actors
       const actor = vtkImageSlice.newInstance();
@@ -116,8 +90,8 @@ export default function Slicer({ imageReader }) {
       //labelmap pipeline
       //filters
       const colorTransferFunction = vtkColorTransferFunction.newInstance();
-      colorTransferFunction.addRGBPoint(1, 0, 0, 1); //label 1 color
-      colorTransferFunction.addRGBPoint(0.2, 0.5, 0, 1); //label 1 color
+      colorTransferFunction.addRGBPoint(1, 0, 0, 1);
+      colorTransferFunction.addRGBPoint(0.2, 0.5, 0, 1);
 
       const piecewiseFunction = vtkPiecewiseFunction.newInstance();
       piecewiseFunction.addPoint(0, 0);
@@ -126,20 +100,26 @@ export default function Slicer({ imageReader }) {
       const painter = vtkPaintFilter.newInstance({});
       painter.setBackgroundImage(imageSource);
       painter.setLabel(1);
-      painter.setSlicingMode(SlicingMode);
+      painter.setSlicingMode(actualSlicingMode);
 
       //actor
       const labelMapActor = vtkImageSlice.newInstance();
+
       labelMapActor.getProperty().setRGBTransferFunction(colorTransferFunction);
       labelMapActor.getProperty().setPiecewiseFunction(piecewiseFunction);
       labelMapActor.getProperty().setOpacity(0.5);
 
       //actors to mappers
-      const labelMapMapper = vtkImageMapper.newInstance({});
+      const labelMapMapper = vtkImageMapper.newInstance(
+        mapper.get("slicingMode")
+      );
+
       labelMapActor.setMapper(labelMapMapper);
       labelMapMapper.setInputConnection(painter.getOutputPort());
 
       renderer.addViewProp(labelMapActor);
+
+      setCamera(actualSlicingMode, renderer, imageSource);
 
       //widget pipeline
       const widgetManager = vtkWidgetManager.newInstance({});
@@ -151,17 +131,6 @@ export default function Slicer({ imageReader }) {
       const bezieHandle = widgetManager.addWidget(bezieWidget, ViewTypes.SLICE);
 
       bezieHandle.setOutputBorder(true);
-
-      bezieHandle.setHandleSizeInPixels(
-        2 * Math.max(...imageSource.getSpacing())
-      );
-      bezieHandle.setFreehandMinDistance(
-        4 * Math.max(...imageSource.getSpacing())
-      );
-
-      // widgetManager.grabFocus(paintWidget);
-
-      //render window
       const renderWindow = fullScreenRenderer.getRenderWindow();
       renderWindow.render();
 
@@ -194,13 +163,6 @@ export default function Slicer({ imageReader }) {
         paintHandle,
         sliceNumber
       );
-      // drawingMethods2.current = DrawingManager(
-      //   widgetManager,
-      //   bezieWidget,
-      //   painter,
-      //   bezieHandle,
-      //   sliceNumber
-      // );
     }
   }, []);
 
@@ -225,7 +187,6 @@ export default function Slicer({ imageReader }) {
       widgetContext.current.bezieHandle.updateRepresentationForRender();
 
       drawingMethods.current.updatePaintWidget(position);
-      // drawingMethods2.current.updatePaintWidget(position);
 
       context.current.renderWindow.render();
       setSliceNumber(currentSlice);
@@ -334,8 +295,8 @@ export default function Slicer({ imageReader }) {
   }, [drawingActivity2]);
 
   useEffect(() => {
-    context.current.mapper.setKSlice(sliceNumber);
-  }, [sliceNumber]);
+    context.current.mapper.set({ slice: sliceNumber });
+  }, [sliceNumer]);
 
   const undo = () => {
     labelmapContext.current.painter.undo();
@@ -352,7 +313,7 @@ export default function Slicer({ imageReader }) {
         onChange={(e) => setSliceNumber(e.target.value)}
         type="range"
         min="0"
-        max="100"
+        max="400"
         value={sliceNumber}
         step="1"
       />
