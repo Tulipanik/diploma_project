@@ -64,7 +64,6 @@ function vtkCurveContextRepresentation(publicAPI, model) {
     }
     const widgetState = inData[0];
     const closed = widgetState.getSplineClosed();
-    // console.log(closed);
 
     const list = publicAPI.getRepresentationStates(widgetState);
     const inPoints = list.map((state) => state.getOrigin());
@@ -108,8 +107,6 @@ function vtkCurveContextRepresentation(publicAPI, model) {
         outCells[i * model.resolution + j + 1] = i * model.resolution + j;
       }
     }
-
-    console.log(outPoints);
 
     if (closed) {
       outCells[numVertices * model.resolution + 1] = 0;

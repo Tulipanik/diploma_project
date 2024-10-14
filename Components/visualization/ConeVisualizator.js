@@ -18,6 +18,7 @@ import vtkWidgetManager from "@kitware/vtk.js/Widgets/Core/WidgetManager";
 import vtkPaintWidget from "@kitware/vtk.js/Widgets/Widgets3D/PaintWidget";
 import { ViewTypes } from "@kitware/vtk.js/Widgets/Core/WidgetManager/Constants";
 import vtkPaintFilter from "@kitware/vtk.js/Filters/General/PaintFilter";
+// import vtkBezieWidget from "@/lib/Widgets/BezieWidget";
 
 import DrawingManager from "@/lib/drawingManager";
 
@@ -125,6 +126,20 @@ export default function ConeVisualizator({ imageReader }) {
         ViewTypes.VOLUME
       );
 
+      // const bezieWidget = vtkBezieWidget.newInstance();
+      // widgetManager.addWidget(bezieWidget);
+
+      // bezieWidget.updateBezierCurve();
+      // renderWindow.getInteractor().onLeftButtonPress((callData) => {
+      //   bezieWidget.handleLeftButtonPress(callData);
+      // });
+      // renderWindow.getInteractor().onMouseMove((callData) => {
+      //   bezieWidget.handleMouseMove(callData);
+      // });
+      // renderWindow.getInteractor().onLeftButtonRelease(() => {
+      //   bezieWidget.handleLeftButtonRelease();
+      // });
+
       //render window
       const renderWindow = fullScreenRenderer.getRenderWindow();
       renderWindow.render();
@@ -143,7 +158,6 @@ export default function ConeVisualizator({ imageReader }) {
         painter.current,
         paintHandle.current
       );
-      console.log(drawingMethods);
     }
   }, []);
 

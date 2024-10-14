@@ -17,11 +17,11 @@ function vtkBSpline1D(publicAPI, model) {
     model.size = size;
     model.x = x;
     model.y = y;
-    console.log(work);
-    // console.log(model.y);
   };
 
   publicAPI.getValue = (intervalIndex, t) => {
+    console.log(model.sliceNumber);
+
     let toReturn = 0;
     for (let i = 0; i < model.size; i++) {
       const coefficients =

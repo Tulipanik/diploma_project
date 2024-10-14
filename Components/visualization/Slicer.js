@@ -125,6 +125,10 @@ export default function Slicer({ imageReader, actualSlicingMode }) {
       const widgetManager = vtkWidgetManager.newInstance({});
       const paintWidget = vtkPaintWidget.newInstance({});
       const bezieWidget = vtkBezieWidget.newInstance();
+      console.log(bezieWidget);
+
+      // bezieWidget.setSlicingMode(actualSlicingMode);
+      // bezieWidget.setSliceNumber(sliceNumber);
 
       widgetManager.setRenderer(renderer);
       const paintHandle = widgetManager.addWidget(paintWidget, ViewTypes.SLICE);
@@ -169,6 +173,7 @@ export default function Slicer({ imageReader, actualSlicingMode }) {
   useEffect(() => {
     const updateSliceNumber = () => {
       const currentSlice = context.current.mapper.getSlice();
+      // widgetContext.current.bezieWidget.setSliceNumber(sliceNumber);
 
       labelmapContext.current.labelMapMapper.set(
         context.current.mapper.get("slice")
@@ -296,7 +301,7 @@ export default function Slicer({ imageReader, actualSlicingMode }) {
 
   useEffect(() => {
     context.current.mapper.set({ slice: sliceNumber });
-  }, [sliceNumer]);
+  }, [sliceNumber]);
 
   const undo = () => {
     labelmapContext.current.painter.undo();

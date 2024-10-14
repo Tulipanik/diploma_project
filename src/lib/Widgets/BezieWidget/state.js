@@ -1,7 +1,10 @@
 import vtkStateBuilder from "@kitware/vtk.js/Widgets/Core/StateBuilder.js";
-import { splineKind } from "@kitware/vtk.js/Common/DataModel/Spline3D/Constants.js";
 import { BoundaryCondition } from "@kitware/vtk.js/Common/DataModel/Spline1D/Constants.js";
 import { extendedSplineKind } from "@/lib/CustomSplineModel/vtkCustomSpline3D";
+import ImageConstants from "@kitware/vtk.js/Rendering/Core/ImageMapper/Constants";
+
+const { SlicingMode } = ImageConstants;
+console.log(SlicingMode);
 
 function generateState() {
   return vtkStateBuilder
@@ -32,6 +35,14 @@ function generateState() {
     })
     .addField({
       name: "splineBias",
+      initialValue: 0,
+    })
+    .addField({
+      name: "slicingMode",
+      initialValue: SlicingMode.I,
+    })
+    .addField({
+      name: "sliceNumber",
       initialValue: 0,
     })
     .addStateFromMixin({

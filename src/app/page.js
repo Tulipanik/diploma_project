@@ -1,9 +1,33 @@
 "use client";
 
+import * as React from "react";
+import { useState } from "react";
+
 import Slicer from "./../../Components/visualization/Slicer";
 import ConeVisualizator from "./../../Components/visualization/ConeVisualizator";
 import vtkXMLImageDataReader from "@kitware/vtk.js/IO/XML/XMLImageDataReader";
-import { useState } from "react";
+import ImageConstants from "@kitware/vtk.js/Rendering/Core/ImageMapper/Constants";
+
+import { styled } from "@mui/material/styles";
+import Image from "next/image";
+import { Typography, Button, Container } from "@mui/material";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import theme from "../../Components/Theme/theme";
+import { ThemeProvider } from "@mui/material/styles";
+
+const VisuallyHiddenInput = styled("input")({
+  clip: "rect(0 0 0 0)",
+  clipPath: "inset(50%)",
+  height: 1,
+  overflow: "hidden",
+  position: "absolute",
+  bottom: 0,
+  left: 0,
+  whiteSpace: "nowrap",
+  width: 1,
+});
+
+const { SlicingMode } = ImageConstants;
 
 export default function Home() {
   const [binaryData, setBinaryData] = useState(null);
@@ -39,21 +63,75 @@ export default function Home() {
   };
 
   return (
-    <div>
-      {!binaryData ? (
-        <div>
-          <input type="file" onChange={loadFile} />
-        </div>
-      ) : (
-        <div>
-          {/* <ConeVisualizator
-            style={{ width: "50%" }}
-            imageReader={binaryData}
-            load={load}
-          /> */}
-          <Slicer imageReader={binaryData} load={load} />
-        </div>
-      )}
-    </div>
+    <ThemeProvider theme={theme}>
+      <div>
+        {!binaryData ? (
+          <React.Fragment>
+            <div className=" w-[100vw] h-[70vh] overflow-hidden">
+              <div className="flex justify-center items-center relative w-[100vw] h-[70vh]">
+                <Image
+                  fill
+                  src="/pexels-pixabay-40568.jpg"
+                  alt="background image"
+                  className="-z-10 object-cover blur-md brightness-90"
+                />
+                <Typography
+                  variant="h1"
+                  // sx={{ color: theme.palette.primary.contrastText }}
+                >
+                  Witaj w{" "}
+                  <span style={{ color: theme.palette.primary.main }}>
+                    MediView
+                  </span>
+                  <Image
+                    alt="logo"
+                    src="/logo.svg"
+                    height={100}
+                    width={100}
+                    className="relative inline-block"
+                  />
+                </Typography>
+              </div>
+            </div>
+            <Container className="relative flex flex-col w-full h-[30vh] justify-center items-center p-10 m-auto bg-white rounded border-8 -translate-y-1/2">
+              <Typography variant="h3" className="relative" gutterBottom>
+                Załącz pliki po których chcesz rysować tutaj
+              </Typography>
+              <Button
+                component="label"
+                role={undefined}
+                variant="contained"
+                tabIndex={-1}
+                startIcon={<CloudUploadIcon />}
+              >
+                Załącz plik
+                <VisuallyHiddenInput type="file" onChange={loadFile} multiple />
+              </Button>
+            </Container>
+            <div
+              style={{ backgroundColor: theme.palette.primary.main }}
+              className="relative bottom-0 w-full"
+            >
+              <Typography variant="body2">
+                Photo by Pixabay:
+                https://www.pexels.com/photo/close-up-photo-of-a-stethoscope-40568/
+              </Typography>
+            </div>
+          </React.Fragment>
+        ) : (
+          <div>
+            {/* <ConeVisualizator
+              style={{ width: "50%" }}
+              imageReader={binaryData}
+              load={load}
+            /> */}
+            <Slicer
+              imageReader={binaryData}
+              actualSlicingMode={SlicingMode.K}
+            />
+          </div>
+        )}
+      </div>
+    </ThemeProvider>
   );
 }

@@ -76,14 +76,11 @@ function vtkBezieWidget(publicAPI, model) {
 // ----------------------------------------------------------------------------
 
 const defaultValues = (initialValues) => ({
-  // manipulator: null,
   freehandMinDistance: 0.1,
   allowFreehand: true,
   resolution: 32,
-  // propagates to SplineContextRepresentation
   defaultCursor: "pointer",
   handleSizeInPixels: 100,
-  // propagates to SplineContextRepresentation
   resetAfterPointPlacement: false,
   behavior: widgetBehavior,
   widgetState: generateState(),
