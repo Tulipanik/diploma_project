@@ -74,8 +74,6 @@ function vtkCurveContextRepresentation(publicAPI, model) {
       inPoints.push(inPoints[0]);
     }
 
-    console.log(widgetState.getSliceNumber());
-
     const spline = customSpline3D.newInstance({
       close: widgetState.getSplineClosed(),
       kind: widgetState.getSplineKind(),
@@ -102,8 +100,6 @@ function vtkCurveContextRepresentation(publicAPI, model) {
     for (let i = 0; i < numVertices; i++) {
       for (let j = 0; j < model.resolution; j++) {
         const t = j / model.resolution;
-
-        // console.log(widgetState.getSliceNumber());
 
         const point = spline.getPoint(i, t);
         outPoints[3 * (i * model.resolution + j) + 0] = point[0];

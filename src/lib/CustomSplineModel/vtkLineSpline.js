@@ -3,16 +3,9 @@ import { m as macro } from "@kitware/vtk.js/macros2.js";
 import vtkWidgetState from "@kitware/vtk.js/Widgets/Core/WidgetState";
 
 function vtkLineSpline1D(publicAPI, model) {
-  let t = -1;
-
-  publicAPI.computeOpenCoefficients = (size, work, x, y) => {
-    // console.log(size);
-    // console.log(work);
-  };
+  publicAPI.computeOpenCoefficients = (size, work, x, y) => {};
 
   publicAPI.getValue = (intervalIndex, t) => {
-    // console.log(model.widgetState.getSliceNumber());
-
     let toReturn = model.sliceNumber * model.spacing;
     return toReturn;
   };
@@ -31,7 +24,7 @@ function extend(publicAPI, model) {
   vtkLineSpline1D(publicAPI, model);
 }
 
-const newInstance = macro.newInstance(extend, "vtkBSpline1D");
+const newInstance = macro.newInstance(extend, "vtkLineSpline1D");
 
 var vtkLineSpline1D$1 = {
   newInstance,

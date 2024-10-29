@@ -9,8 +9,6 @@ function widgetBehavior(publicAPI, model) {
   model.moveHandle = model.widgetState.getMoveHandle();
   const MAX_POINTS = 10;
 
-  // console.log(model);
-
   // --------------------------------------------------------------------------
   // Private methods
   // --------------------------------------------------------------------------
@@ -360,6 +358,7 @@ function widgetBehavior(publicAPI, model) {
         const handleList = model.widgetState.getHandleList();
         model.lastHandle = handleList[handleList.length - 1];
       }
+    } else if (key === "d" || key === "D") {
     }
   };
 

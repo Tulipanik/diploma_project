@@ -21,7 +21,6 @@ import vtkPiecewiseFunction from "@kitware/vtk.js/Common/DataModel/PiecewiseFunc
 import vtkBezieWidget from "@/lib/Widgets/BezieCurve";
 
 import DrawingManager from "@/lib/drawingManager";
-import BezieModel, { Point } from "@/lib/Models/BezieModel";
 
 function setCamera(sliceMode, renderer, data) {
   const ijk = [0, 0, 0];
@@ -56,8 +55,6 @@ export default function Slicer({ imageReader, actualSlicingMode }) {
   useEffect(() => {
     if (!context.current) {
       //image pipeline
-
-      console.log(imageReader.getOutputData().getSpacing());
 
       //mapper
       const mapper = vtkImageMapper.newInstance({});
@@ -127,7 +124,6 @@ export default function Slicer({ imageReader, actualSlicingMode }) {
       const widgetManager = vtkWidgetManager.newInstance({});
       const paintWidget = vtkPaintWidget.newInstance({});
       const bezieWidget = vtkBezieWidget.newInstance({});
-      console.log(bezieWidget);
 
       bezieWidget.getWidgetState().setSlicingMode(actualSlicingMode);
       bezieWidget.getWidgetState().setSliceNumber(sliceNumber);
@@ -136,7 +132,6 @@ export default function Slicer({ imageReader, actualSlicingMode }) {
       widgetManager.setRenderer(renderer);
       const paintHandle = widgetManager.addWidget(paintWidget, ViewTypes.SLICE);
       const bezieHandle = widgetManager.addWidget(bezieWidget, ViewTypes.SLICE);
-      console.log(bezieWidget);
 
       bezieHandle.setOutputBorder(true);
       const renderWindow = fullScreenRenderer.getRenderWindow();
@@ -198,8 +193,6 @@ export default function Slicer({ imageReader, actualSlicingMode }) {
 
       context.current.renderWindow.render();
       setSliceNumber(currentSlice);
-      console.log(sliceNumber);
-
       widgetContext.current.bezieWidget.setSliceNumber(parseInt(currentSlice));
     };
 
@@ -250,48 +243,19 @@ export default function Slicer({ imageReader, actualSlicingMode }) {
 
     const interactionEventEnd =
       widgetContext.current.bezieHandle.onEndInteractionEvent(() => {
-        // const points = Array.from(
-        //   widgetContext.current.bezieHandle.getPoints()
-        // );
-        // const vectorSize = 3;
-        // let vectors = [];
-        // for (let i = 0; i < points.length; i += vectorSize) {
-        //   vectors.push(
-        //     new Point(
-        //       [parseInt(i / vectorSize) + 1, 0],
-        //       points[i],
-        //       points[i + 1],
-        //       points[i + 2]
-        //     )
-        //   );
-        // }
+        const points = Array.from(
+          widgetContext.current.bezieHandle.getPoints()
+        );
 
-        // const bezieModel = BezieModel(vectors);
-        // bezieModel.drawCurve(labelmapContext.current.painter);
+        console.log(points);
 
-        // const RESOLUTION = 25;
-        // const newPoints = [];
-
-        // const pointSteps = [];
-
-        // for (let i = 0; i < points.length - 6; i += 3) {
-        //   pointSteps.push(
-        //     parseFloat(Math.abs(points[i + 1] - points[i]) / RESOLUTION)
-        //   );
-        //   newPoints.push(points[i]);
-        // }
-
-        // let prevPoints = [];
-
-        // for (let i = 0; i < RESOLUTION; i++) {
-        //   prevPoints = [...newPoints];
-        //   newPoints.forEach((elem, index) => {
-        //     const newPoint = elem + pointSteps[index];
-
-        //     drawLine(labelmapContext.current.painter, elem, newPoint);
-        //     newPoints[index] = newPoint;
-        //   });
-        // }
+        for (let i = 0; i < points.length; i += 3) {
+          labelmapContext.current.painter.addPoint([
+            points[i],
+            points[i + 1],
+            points[i + 2],
+          ]);
+        }
 
         labelmapContext.current.painter.endStroke();
       });

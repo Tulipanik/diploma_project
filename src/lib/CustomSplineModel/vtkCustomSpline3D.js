@@ -41,8 +41,6 @@ function vtkCustomSpline3D(publicAPI, model, initialValues = {}) {
     if (model.close) {
       spline.computeCloseCoefficients(size, work, intervals, points);
     } else {
-      // console.log(spline);
-
       spline.computeOpenCoefficients(size, work, intervals, points, {
         leftConstraint: model.boundaryCondition,
         leftValue: boundaryConditionValue,
@@ -50,8 +48,6 @@ function vtkCustomSpline3D(publicAPI, model, initialValues = {}) {
         rightValue: boundaryConditionValue,
       });
     }
-
-    // console.log(model);
   }
 
   publicAPI.computeCoefficients = (points) => {

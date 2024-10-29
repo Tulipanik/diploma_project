@@ -3,7 +3,6 @@ import { m as macro } from "@kitware/vtk.js/macros2.js";
 import vtkWidgetState from "@kitware/vtk.js/Widgets/Core/WidgetState";
 
 function vtkBSpline1D(publicAPI, model) {
-  // vtkSpline1D.extend(publicAPI, model);
   let t = -1;
 
   const newton = (n, k) => {

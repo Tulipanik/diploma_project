@@ -36,8 +36,6 @@ function vtkBezieWidget(publicAPI, model) {
       case ViewTypes.SLICE:
       case ViewTypes.VOLUME:
       default:
-        // console.log(model.widgetState.getSliceNumber());
-
         return [
           {
             builder: vtkSphereHandleRepresentation,
@@ -61,10 +59,7 @@ function vtkBezieWidget(publicAPI, model) {
   };
 
   publicAPI.setSliceNumber = (sliceNumber) => {
-    console.log(sliceNumber);
-
     model.widgetState.setSliceNumber(sliceNumber);
-    console.log(model.widgetState.getSliceNumber());
   };
 
   // --------------------------------------------------------------------------
