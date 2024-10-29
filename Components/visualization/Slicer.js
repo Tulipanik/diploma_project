@@ -57,6 +57,8 @@ export default function Slicer({ imageReader, actualSlicingMode }) {
     if (!context.current) {
       //image pipeline
 
+      console.log(imageReader.getOutputData().getSpacing());
+
       //mapper
       const mapper = vtkImageMapper.newInstance({});
       mapper.setSlicingMode(actualSlicingMode);
@@ -124,15 +126,17 @@ export default function Slicer({ imageReader, actualSlicingMode }) {
       //widget pipeline
       const widgetManager = vtkWidgetManager.newInstance({});
       const paintWidget = vtkPaintWidget.newInstance({});
-      const bezieWidget = vtkBezieWidget.newInstance();
+      const bezieWidget = vtkBezieWidget.newInstance({});
       console.log(bezieWidget);
 
-      // bezieWidget.setSlicingMode(actualSlicingMode);
-      // bezieWidget.setSliceNumber(sliceNumber);
+      bezieWidget.getWidgetState().setSlicingMode(actualSlicingMode);
+      bezieWidget.getWidgetState().setSliceNumber(sliceNumber);
+      bezieWidget.getWidgetState().setSpacing(imageSource.getSpacing());
 
       widgetManager.setRenderer(renderer);
       const paintHandle = widgetManager.addWidget(paintWidget, ViewTypes.SLICE);
       const bezieHandle = widgetManager.addWidget(bezieWidget, ViewTypes.SLICE);
+      console.log(bezieWidget);
 
       bezieHandle.setOutputBorder(true);
       const renderWindow = fullScreenRenderer.getRenderWindow();
@@ -173,7 +177,6 @@ export default function Slicer({ imageReader, actualSlicingMode }) {
   useEffect(() => {
     const updateSliceNumber = () => {
       const currentSlice = context.current.mapper.getSlice();
-      // widgetContext.current.bezieWidget.setSliceNumber(sliceNumber);
 
       labelmapContext.current.labelMapMapper.set(
         context.current.mapper.get("slice")
@@ -195,6 +198,9 @@ export default function Slicer({ imageReader, actualSlicingMode }) {
 
       context.current.renderWindow.render();
       setSliceNumber(currentSlice);
+      console.log(sliceNumber);
+
+      widgetContext.current.bezieWidget.setSliceNumber(parseInt(currentSlice));
     };
 
     const sub = context.current.mapper.onModified(updateSliceNumber);

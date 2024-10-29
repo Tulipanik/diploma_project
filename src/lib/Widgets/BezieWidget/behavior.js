@@ -9,7 +9,7 @@ function widgetBehavior(publicAPI, model) {
   model.moveHandle = model.widgetState.getMoveHandle();
   const MAX_POINTS = 10;
 
-  console.log(model);
+  // console.log(model);
 
   // --------------------------------------------------------------------------
   // Private methods

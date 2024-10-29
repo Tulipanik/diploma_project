@@ -1,9 +1,13 @@
-// import vtkSpline3D from "@kitware/vtk.js/Common/DataModel/Spline3D";
 import vtkBSpline1D from "./vtkBSpline1D";
-import vtkKochanekSpline1D from "@kitware/vtk.js/Common/DataModel/KochanekSpline1D";
+import vtkLineSpline1D from "./vtkLineSpline";
+
 import vtkCardinalSpline1D from "@kitware/vtk.js/Common/DataModel/CardinalSpline1D";
-import { m as macro } from "@kitware/vtk.js/macros2.js";
+import vtkKochanekSpline1D from "@kitware/vtk.js/Common/DataModel/KochanekSpline1D";
 import { splineKind } from "@kitware/vtk.js/Common/DataModel/Spline3D/Constants";
+import { m as macro } from "@kitware/vtk.js/macros2.js";
+import ImageConstants from "@kitware/vtk.js/Rendering/Core/ImageMapper/Constants";
+
+const { SlicingMode } = ImageConstants;
 
 export const extendedSplineKind = { ...splineKind, B_SPLINE: "B_SPLINE" };
 
@@ -37,6 +41,8 @@ function vtkCustomSpline3D(publicAPI, model, initialValues = {}) {
     if (model.close) {
       spline.computeCloseCoefficients(size, work, intervals, points);
     } else {
+      // console.log(spline);
+
       spline.computeOpenCoefficients(size, work, intervals, points, {
         leftConstraint: model.boundaryCondition,
         leftValue: boundaryConditionValue,
@@ -45,7 +51,7 @@ function vtkCustomSpline3D(publicAPI, model, initialValues = {}) {
       });
     }
 
-    console.log(model);
+    // console.log(model);
   }
 
   publicAPI.computeCoefficients = (points) => {
@@ -59,11 +65,13 @@ function vtkCustomSpline3D(publicAPI, model, initialValues = {}) {
 
   // --------------------------------------------------------------------------
 
-  publicAPI.getPoint = (intervalIndex, t) => [
-    model.splineX.getValue(intervalIndex, t),
-    model.splineY.getValue(intervalIndex, t),
-    model.splineZ.getValue(intervalIndex, t),
-  ];
+  publicAPI.getPoint = (intervalIndex, t) => {
+    return [
+      model.splineX.getValue(intervalIndex, t),
+      model.splineY.getValue(intervalIndex, t),
+      model.splineZ.getValue(intervalIndex, t),
+    ];
+  };
 
   // --------------------------------------------------------------------------
   // initialization
@@ -90,9 +98,32 @@ function vtkCustomSpline3D(publicAPI, model, initialValues = {}) {
     model.splineY = vtkCardinalSpline1D.newInstance();
     model.splineZ = vtkCardinalSpline1D.newInstance();
   } else if (model.kind === extendedSplineKind.B_SPLINE) {
-    model.splineX = vtkBSpline1D.newInstance();
-    model.splineY = vtkBSpline1D.newInstance();
-    model.splineZ = vtkBSpline1D.newInstance();
+    console.log(model.sliceNumber);
+
+    model.splineX =
+      model.slicingMode !== SlicingMode.I
+        ? vtkBSpline1D.newInstance()
+        : vtkLineSpline1D.newInstance({
+            sliceNumber: model.sliceNumber,
+            spacing: model.spacing[0],
+            widgetState: model.widgetState,
+          });
+    model.splineY =
+      model.splicingMode !== SlicingMode.J
+        ? vtkBSpline1D.newInstance()
+        : vtkLineSpline1D.newInstance({
+            sliceNumber: model.sliceNumber,
+            spacing: model.spacing[1],
+            widgetState: model.widgetState,
+          });
+    model.splineZ =
+      model.slicingMode !== SlicingMode.K
+        ? vtkBSpline1D.newInstance()
+        : vtkLineSpline1D.newInstance({
+            sliceNumber: model.sliceNumber,
+            spacing: model.spacing[2],
+            widgetState: model.widgetState,
+          });
   } else {
     vtkErrorMacro(`Unknown spline type ${model.kind}`);
   }
@@ -117,7 +148,7 @@ function extend(publicAPI, model) {
 
   // Build VTK API
   macro.obj(publicAPI, model);
-  macro.setGet(publicAPI, model, ["close", "intervals"]);
+  macro.setGet(publicAPI, model, ["close", "intervals", "sliceNumber"]);
   vtkCustomSpline3D(publicAPI, model);
 }
 

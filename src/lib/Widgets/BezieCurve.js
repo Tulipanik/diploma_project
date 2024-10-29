@@ -6,7 +6,6 @@ import widgetBehavior from "./BezieWidget/behavior.js";
 import generateState from "./BezieWidget/state.js";
 import { ViewTypes } from "@kitware/vtk.js/Widgets/Core/WidgetManager/Constants.js";
 
-// import vtkSplineContextRepresentation from "@kitware/vtk.js/Widgets/Representations/SplineContextRepresentation.js";
 import vtkCurveContextRepresentation from "./vtkCurveContextRepresentation.js";
 
 // ----------------------------------------------------------------------------
@@ -37,6 +36,8 @@ function vtkBezieWidget(publicAPI, model) {
       case ViewTypes.SLICE:
       case ViewTypes.VOLUME:
       default:
+        // console.log(model.widgetState.getSliceNumber());
+
         return [
           {
             builder: vtkSphereHandleRepresentation,
@@ -57,6 +58,13 @@ function vtkBezieWidget(publicAPI, model) {
     model.widgetState.getHandleList().forEach((handle) => {
       handle.setManipulator(manipulator);
     });
+  };
+
+  publicAPI.setSliceNumber = (sliceNumber) => {
+    console.log(sliceNumber);
+
+    model.widgetState.setSliceNumber(sliceNumber);
+    console.log(model.widgetState.getSliceNumber());
   };
 
   // --------------------------------------------------------------------------

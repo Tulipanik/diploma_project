@@ -45,6 +45,10 @@ function generateState() {
       name: "sliceNumber",
       initialValue: 0,
     })
+    .addField({
+      name: "spacing",
+      initialValue: [0, 0, 0],
+    })
     .addStateFromMixin({
       labels: ["moveHandle"],
       mixins: ["origin", "color", "scale1", "visible", "manipulator"],

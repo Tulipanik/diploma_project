@@ -19,9 +19,7 @@ function vtkBSpline1D(publicAPI, model) {
     model.y = y;
   };
 
-  publicAPI.getValue = (intervalIndex, t) => {
-    console.log(model.sliceNumber);
-
+  publicAPI.getValue = (intervalIndex, t, sliceNumber, slicingMode) => {
     let toReturn = 0;
     for (let i = 0; i < model.size; i++) {
       const coefficients =

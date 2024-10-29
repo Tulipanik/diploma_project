@@ -3,13 +3,10 @@ import vtkActor from "@kitware/vtk.js/Rendering/Core/Actor.js";
 import vtkContextRepresentation from "@kitware/vtk.js/Widgets/Representations/ContextRepresentation.js";
 import vtkMapper from "@kitware/vtk.js/Rendering/Core/Mapper.js";
 import vtkPolyData from "@kitware/vtk.js/Common/DataModel/PolyData.js";
-// import vtkSpline3D from "@kitware/vtk.js/Common/DataModel/Spline3D.js";
-// import vtkTriangleFilter from "@kitware/vtk.js/Filters/General/TriangleFilter.js";
 import vtkLineFilter from "@kitware/vtk.js/Filters/General/LineFilter.js";
 import vtkWidgetRepresentation, {
   allocateArray,
 } from "@kitware/vtk.js/Widgets/Representations/WidgetRepresentation.js";
-// import vtkSpline1D from "@kitware/vtk.js/Common/DataModel/Spline1D";
 import customSpline3D from "../CustomSplineModel/vtkCustomSpline3D";
 
 // ----------------------------------------------------------------------------
@@ -17,7 +14,6 @@ import customSpline3D from "../CustomSplineModel/vtkCustomSpline3D";
 // ----------------------------------------------------------------------------
 
 function vtkCurveContextRepresentation(publicAPI, model) {
-  // Set our className
   model.classHierarchy.push("vtkCurveContextRepresentation");
 
   model.internalPolyData = vtkPolyData.newInstance({
@@ -77,6 +73,9 @@ function vtkCurveContextRepresentation(publicAPI, model) {
     } else {
       inPoints.push(inPoints[0]);
     }
+
+    console.log(widgetState.getSliceNumber());
+
     const spline = customSpline3D.newInstance({
       close: widgetState.getSplineClosed(),
       kind: widgetState.getSplineKind(),
@@ -85,6 +84,10 @@ function vtkCurveContextRepresentation(publicAPI, model) {
       continuity: widgetState.getSplineContinuity(),
       boundaryCondition: widgetState.getSplineBoundaryCondition(),
       boundaryConditionValues: widgetState.getSplineBoundaryConditionValues(),
+      slicingMode: widgetState.getSlicingMode(),
+      sliceNumber: widgetState.getSliceNumber(),
+      spacing: widgetState.getSpacing(),
+      widgetState: widgetState,
     });
     spline.computeCoefficients(inPoints);
     const outPoints = allocateArray(
@@ -99,6 +102,8 @@ function vtkCurveContextRepresentation(publicAPI, model) {
     for (let i = 0; i < numVertices; i++) {
       for (let j = 0; j < model.resolution; j++) {
         const t = j / model.resolution;
+
+        // console.log(widgetState.getSliceNumber());
 
         const point = spline.getPoint(i, t);
         outPoints[3 * (i * model.resolution + j) + 0] = point[0];
@@ -168,6 +173,7 @@ function extend(publicAPI, model) {
     "boundaryCondition",
     "fill",
     "outputBorder",
+    "sliceNumber",
   ]);
   macro.setGetArray(publicAPI, model, ["borderColor", "errorBorderColor"], 3);
 
