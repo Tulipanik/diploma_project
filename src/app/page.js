@@ -64,74 +64,69 @@ export default function Home() {
 
   return (
     <ThemeProvider theme={theme}>
-      <div>
-        {!binaryData ? (
-          <React.Fragment>
-            <div className=" w-[100vw] h-[70vh] overflow-hidden">
-              <div className="flex justify-center items-center relative w-[100vw] h-[70vh]">
-                <Image
-                  fill
-                  src="/pexels-pixabay-40568.jpg"
-                  alt="background image"
-                  className="-z-10 object-cover blur-md brightness-90"
-                />
-                <Typography
-                  variant="h1"
-                  // sx={{ color: theme.palette.primary.contrastText }}
-                >
-                  Witaj w{" "}
-                  <span style={{ color: theme.palette.primary.main }}>
-                    MediView
-                  </span>
-                  <Image
-                    alt="logo"
-                    src="/logo.svg"
-                    height={100}
-                    width={100}
-                    className="relative inline-block"
-                  />
-                </Typography>
-              </div>
-            </div>
-            <Container className="relative flex flex-col w-full h-[30vh] justify-center items-center p-10 m-auto bg-white rounded border-8 -translate-y-1/2">
-              <Typography variant="h3" className="relative" gutterBottom>
-                Załącz pliki po których chcesz rysować tutaj
-              </Typography>
-              <Button
-                component="label"
-                role={undefined}
-                variant="contained"
-                tabIndex={-1}
-                startIcon={<CloudUploadIcon />}
+      {!binaryData ? (
+        <React.Fragment>
+          <div className=" w-[100vw] h-[70vh] overflow-hidden">
+            <div className="flex overflow-hidden justify-center items-center relative w-[110vw] h-[90vh]">
+              <Image
+                fill
+                src="/pexels-pixabay-40568.jpg"
+                alt="background image"
+                className="-z-10 object-cover blur-md brightness-90"
+              />
+              <Typography
+                variant="h1"
+                // sx={{ color: theme.palette.primary.contrastText }}
               >
-                Załącz plik
-                <VisuallyHiddenInput type="file" onChange={loadFile} multiple />
-              </Button>
-            </Container>
-            <div
-              style={{ backgroundColor: theme.palette.primary.main }}
-              className="relative bottom-0 w-full"
-            >
-              <Typography variant="body2">
-                Photo by Pixabay:
-                https://www.pexels.com/photo/close-up-photo-of-a-stethoscope-40568/
+                Witaj w{" "}
+                <span style={{ color: theme.palette.primary.main }}>
+                  MediView
+                </span>
+                <Image
+                  alt="logo"
+                  src="/logo.svg"
+                  height={100}
+                  width={100}
+                  className="relative inline-block"
+                />
               </Typography>
             </div>
-          </React.Fragment>
-        ) : (
-          <div>
-            {/* <ConeVisualizator
+          </div>
+          <Container className="relative flex flex-col w-full h-[25vh] justify-center items-center p-10 m-auto bg-white rounded border-8 -translate-y-1/2">
+            <Typography variant="h3" className="relative" gutterBottom>
+              Załącz pliki po których chcesz rysować tutaj
+            </Typography>
+            <Button
+              component="label"
+              role={undefined}
+              variant="contained"
+              tabIndex={-1}
+              startIcon={<CloudUploadIcon />}
+            >
+              Załącz plik
+              <VisuallyHiddenInput type="file" onChange={loadFile} multiple />
+            </Button>
+          </Container>
+          <footer
+            style={{ backgroundColor: theme.palette.primary.main }}
+            className="flex justify-center align-center overflow-hidden h-[5vh]"
+          >
+            <Typography variant="body2">
+              Photo by Pixabay:
+              https://www.pexels.com/photo/close-up-photo-of-a-stethoscope-40568/
+            </Typography>
+          </footer>
+        </React.Fragment>
+      ) : (
+        <div>
+          {/* <ConeVisualizator
               style={{ width: "50%" }}
               imageReader={binaryData}
               load={load}
             /> */}
-            <Slicer
-              imageReader={binaryData}
-              actualSlicingMode={SlicingMode.K}
-            />
-          </div>
-        )}
-      </div>
+          <Slicer imageReader={binaryData} actualSlicingMode={SlicingMode.K} />
+        </div>
+      )}
     </ThemeProvider>
   );
 }

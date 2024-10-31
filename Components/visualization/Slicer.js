@@ -21,6 +21,17 @@ import vtkPiecewiseFunction from "@kitware/vtk.js/Common/DataModel/PiecewiseFunc
 import vtkBezieWidget from "@/lib/Widgets/BezieCurve";
 
 import DrawingManager from "@/lib/drawingManager";
+import {
+  IconButton,
+  Slider,
+  TextField,
+  Stack,
+  TextareaAutosize,
+  Typography,
+} from "@mui/material";
+import { Brush, Redo, Timeline, Undo } from "@mui/icons-material";
+
+import theme from "../Theme/theme";
 
 function setCamera(sliceMode, renderer, data) {
   const ijk = [0, 0, 0];
@@ -49,6 +60,7 @@ export default function Slicer({ imageReader, actualSlicingMode }) {
 
   //image elements
   const imageSource = imageReader.getOutputData(0);
+  const howManySlices = imageSource.getExtent()[(actualSlicingMode % 3) + 1];
 
   const drawingMethods = useRef(null);
 
@@ -247,8 +259,6 @@ export default function Slicer({ imageReader, actualSlicingMode }) {
           widgetContext.current.bezieHandle.getPoints()
         );
 
-        console.log(points);
-
         for (let i = 0; i < points.length; i += 3) {
           labelmapContext.current.painter.addPoint([
             points[i],
@@ -284,40 +294,94 @@ export default function Slicer({ imageReader, actualSlicingMode }) {
   return (
     <div>
       <div ref={vtkContainerRef} />
-      <input
-        onChange={(e) => setSliceNumber(e.target.value)}
-        type="range"
-        min="0"
-        max="400"
-        value={sliceNumber}
-        step="1"
-      />
-      <HoverMenu>
-        <div>slice: {Math.round(sliceNumber)}</div>
-        <button onClick={() => setDrawingActivity(!drawingActivity)}>
-          draw
-        </button>
-        <button onClick={() => setDrawingActivity2(!drawingActivity2)}>
-          drawBezie
-        </button>
-        <button onClick={() => undo()}>undo</button>
-        <button onClick={() => redo()}>redo</button>
-        <input
-          style={{ position: "absolute", zIndex: 3 }}
-          onChange={(e) => setRadius(e.target.value)}
-          type="range"
-          min="0"
-          max="100"
-          value={radius}
-          step="1"
-        />
-        <input
-          type="color"
-          value={color}
-          onChange={(e) => {
-            setColor(e.target.value);
+      <Stack
+        spacing={5}
+        sx={{
+          position: "absolute",
+          top: 0,
+          right: 0,
+          height: "100%",
+          marginTop: "5%",
+          marginBottom: "5%",
+          alignItems: "center",
+        }}
+      >
+        <Slider
+          sx={{
+            '& input[type="range"]': {
+              WebkitAppearance: "slider-vertical",
+            },
           }}
+          orientation="vertical"
+          value={sliceNumber}
+          aria-label="slice number"
+          min={0}
+          max={howManySlices}
+          onChange={(e) => setSliceNumber(e.target.value)}
         />
+        <Stack direction="row">
+          <TextField
+            variant="standard"
+            sx={{
+              "& .MuiInputBase-input": {
+                color: theme.palette.primary.contrastText,
+              },
+              width: 40,
+            }}
+            onChange={(e) => {
+              setSliceNumber(e.target.value);
+            }}
+            value={sliceNumber}
+          />
+          <Typography
+            variant="body1"
+            sx={{ color: theme.palette.primary.contrastText }}
+          >
+            /{howManySlices}
+          </Typography>
+        </Stack>
+      </Stack>
+
+      <HoverMenu>
+        <IconButton
+          onClick={() => {
+            drawingActivity2 && setDrawingActivity2(false);
+            setDrawingActivity(!drawingActivity);
+          }}
+          aria-label="paint"
+          color={drawingActivity ? "primary" : "default"}
+          variant={drawingActivity ? "contained" : "outlined"}
+        >
+          <Brush />
+        </IconButton>
+        <IconButton
+          onClick={() => {
+            drawingActivity && setDrawingActivity(false);
+            setDrawingActivity2(!drawingActivity2);
+          }}
+          aria-label="curve"
+          color={drawingActivity2 ? "primary" : "default"}
+          variant={drawingActivity2 ? "contained" : "outlined"}
+        >
+          <Timeline />
+        </IconButton>
+        <IconButton onClick={() => undo()}>
+          <Undo />
+        </IconButton>
+        <IconButton onClick={() => redo()}>
+          <Redo />
+        </IconButton>
+        {/* <Stack spacing={2} direction="row" sx={{ alignItems: "center", mb: 1 }}>
+          <VolumeDown /> */}
+        <Slider
+          aria-label="brush size"
+          value={radius}
+          onChange={(e) => setRadius(e.target.value)}
+          min={1}
+          max={100}
+        />
+        {/* <VolumeUp />
+        </Stack> */}
       </HoverMenu>
     </div>
   );
