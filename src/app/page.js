@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useState } from "react";
+import { useState, createContext } from "react";
 
 import Slicer from "./../../Components/visualization/Slicer";
 import ConeVisualizator from "./../../Components/visualization/ConeVisualizator";
@@ -28,6 +28,8 @@ const VisuallyHiddenInput = styled("input")({
 });
 
 const { SlicingMode } = ImageConstants;
+
+export const ImageDataContext = createContext(null);
 
 export default function Home() {
   const [binaryData, setBinaryData] = useState(null);
@@ -63,70 +65,75 @@ export default function Home() {
   };
 
   return (
-    <ThemeProvider theme={theme}>
-      {!binaryData ? (
-        <React.Fragment>
-          <div className=" w-[100vw] h-[70vh] overflow-hidden">
-            <div className="flex overflow-hidden justify-center items-center relative w-[110vw] h-[90vh]">
-              <Image
-                fill
-                src="/pexels-pixabay-40568.jpg"
-                alt="background image"
-                className="-z-10 object-cover blur-md brightness-90"
-              />
-              <Typography
-                variant="h1"
-                // sx={{ color: theme.palette.primary.contrastText }}
-              >
-                Witaj w{" "}
-                <span style={{ color: theme.palette.primary.main }}>
-                  MediView
-                </span>
+    <ImageDataContext.Provider value={binaryData}>
+      <ThemeProvider theme={theme}>
+        {!binaryData ? (
+          <React.Fragment>
+            <div className=" w-[100vw] h-[70vh] overflow-hidden">
+              <div className="flex overflow-hidden justify-center items-center relative w-[110vw] h-[90vh]">
                 <Image
-                  alt="logo"
-                  src="/logo.svg"
-                  height={100}
-                  width={100}
-                  className="relative inline-block"
+                  fill
+                  src="/pexels-pixabay-40568.jpg"
+                  alt="background image"
+                  className="-z-10 object-cover blur-md brightness-90"
                 />
-              </Typography>
+                <Typography
+                  variant="h1"
+                  // sx={{ color: theme.palette.primary.contrastText }}
+                >
+                  Witaj w{" "}
+                  <span style={{ color: theme.palette.primary.main }}>
+                    MediView
+                  </span>
+                  <Image
+                    alt="logo"
+                    src="/logo.svg"
+                    height={100}
+                    width={100}
+                    className="relative inline-block"
+                  />
+                </Typography>
+              </div>
             </div>
-          </div>
-          <Container className="relative flex flex-col w-full h-[25vh] justify-center items-center p-10 m-auto bg-white rounded border-8 -translate-y-1/2">
-            <Typography variant="h3" className="relative" gutterBottom>
-              Załącz pliki po których chcesz rysować tutaj
-            </Typography>
-            <Button
-              component="label"
-              role={undefined}
-              variant="contained"
-              tabIndex={-1}
-              startIcon={<CloudUploadIcon />}
+            <Container className="relative flex flex-col w-full h-[25vh] justify-center items-center p-10 m-auto bg-white rounded border-8 -translate-y-1/2">
+              <Typography variant="h3" className="relative" gutterBottom>
+                Załącz pliki po których chcesz rysować tutaj
+              </Typography>
+              <Button
+                component="label"
+                role={undefined}
+                variant="contained"
+                tabIndex={-1}
+                startIcon={<CloudUploadIcon />}
+              >
+                Załącz plik
+                <VisuallyHiddenInput type="file" onChange={loadFile} multiple />
+              </Button>
+            </Container>
+            <footer
+              style={{ backgroundColor: theme.palette.primary.main }}
+              className="flex justify-center align-center overflow-hidden h-[5vh]"
             >
-              Załącz plik
-              <VisuallyHiddenInput type="file" onChange={loadFile} multiple />
-            </Button>
-          </Container>
-          <footer
-            style={{ backgroundColor: theme.palette.primary.main }}
-            className="flex justify-center align-center overflow-hidden h-[5vh]"
-          >
-            <Typography variant="body2">
-              Photo by Pixabay:
-              https://www.pexels.com/photo/close-up-photo-of-a-stethoscope-40568/
-            </Typography>
-          </footer>
-        </React.Fragment>
-      ) : (
-        <div>
-          {/* <ConeVisualizator
+              <Typography variant="body2">
+                Photo by Pixabay:
+                https://www.pexels.com/photo/close-up-photo-of-a-stethoscope-40568/
+              </Typography>
+            </footer>
+          </React.Fragment>
+        ) : (
+          <div>
+            {/* <ConeVisualizator
               style={{ width: "50%" }}
               imageReader={binaryData}
               load={load}
             /> */}
-          <Slicer imageReader={binaryData} actualSlicingMode={SlicingMode.K} />
-        </div>
-      )}
-    </ThemeProvider>
+            <Slicer
+              // imageReader={binaryData}
+              actualSlicingMode={SlicingMode.K}
+            />
+          </div>
+        )}
+      </ThemeProvider>
+    </ImageDataContext.Provider>
   );
 }

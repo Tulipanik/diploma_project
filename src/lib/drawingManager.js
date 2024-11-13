@@ -17,8 +17,6 @@ export default function DrawingManager(
         painter.addPoint(paintWidget.getWidgetState().getTrueOrigin());
       });
       interactionEvent = paintHandle.onInteractionEvent(() => {
-        console.log(paintWidget.getWidgetState().getTrueOrigin());
-
         painter.addPoint(paintWidget.getWidgetState().getTrueOrigin());
       });
       interactionEventEnd = paintHandle.onEndInteractionEvent(() => {

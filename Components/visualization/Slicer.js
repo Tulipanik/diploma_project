@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useContext } from "react";
 
 import HoverMenu from "./HoverMenu";
 
@@ -26,12 +26,13 @@ import {
   Slider,
   TextField,
   Stack,
-  TextareaAutosize,
   Typography,
 } from "@mui/material";
 import { Brush, Redo, Timeline, Undo } from "@mui/icons-material";
 
 import theme from "../Theme/theme";
+
+import { ImageDataContext } from "@/app/page";
 
 function setCamera(sliceMode, renderer, data) {
   const ijk = [0, 0, 0];
@@ -44,7 +45,7 @@ function setCamera(sliceMode, renderer, data) {
   renderer.resetCamera();
 }
 
-export default function Slicer({ imageReader, actualSlicingMode }) {
+export default function Slicer({ actualSlicingMode }) {
   const vtkContainerRef = useRef(null);
   const context = useRef(null);
   const labelmapContext = useRef(null);
@@ -59,6 +60,7 @@ export default function Slicer({ imageReader, actualSlicingMode }) {
   const [label, setLabel] = useState(1);
 
   //image elements
+  const imageReader = useContext(ImageDataContext);
   const imageSource = imageReader.getOutputData(0);
   const howManySlices = imageSource.getExtent()[(actualSlicingMode % 3) + 1];
 
