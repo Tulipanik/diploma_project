@@ -1,36 +1,19 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# MediView - app for medical image addnotation
 
-## Getting Started
+## Description of a project
 
-First, run the development server:
+Project MediView was created as a part of diploma thesis under title **Browser-Based Application for Preparing Medical Image Annotations**.
+App allow users to upload their own .vti files into it and make 2 kinds of addnotations:
+ - Brush painting,
+ - Be&#769;zier curves.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+These addnotations can be made on each axis of the picture and on 3D visualization (only brush painting).
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Project is created only to be used on the browser and does not need any server-side elements.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## Goal
+Main goal of developing this app was organization of work with library **vtk.js**, which is part of the largest collection of visualization libraries (The Visualization Toolkit).
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+Library documentation do not regulate how to use it, so my plan was to create a basic usage guide of it.
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+Also the goal was to structurize the way of working with a library and make a proposition on how to make a vtk app from start to end.
