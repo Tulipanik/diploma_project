@@ -1,4 +1,4 @@
-# MediView - app for medical image addnotation
+ # MediView - app for medical image annotation  <img src="/Photos-readme/logo.svg" style="width: 100px; height: 100px; margin-left: 10px; align: right;" />
 
 ## Description of a project
 
@@ -10,6 +10,13 @@ App allow users to upload their own .vti files into it and make 2 kinds of addno
 These addnotations can be made on each axis of the picture and on 3D visualization (only brush painting).
 
 Project is created only to be used on the browser and does not need any server-side elements.
+
+## Some views
+<div style="display:flex;">
+ <img src="/Photos-readme/rysowanie_zmiana_pedzla.png" style="width:30%;"/>
+ <img src="/Photos-readme/odbita_krzywa.png" style="width:30%;"/>
+ <img src="/Photos-readme/rysowanie_3D.png" style="width:30%;"/>
+</div>
 
 ## Goal
 Main goal of developing this app was organization of work with library **vtk.js**, which is part of the largest collection of visualization libraries (The Visualization Toolkit).
